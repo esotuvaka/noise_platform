@@ -2,9 +2,36 @@
 
 ## A soundboard written in Rust + TypeScript
 
-Rather than purchasing a soundboard, this was created as a fun project to learn rust on the desktop. Its basic and not very idiomatic, but has been a blast to make and use to mess around with friends.
+Rather than purchasing a soundboard, this was created as a fun project to experiment with rust on the desktop. Its basic and not very idiomatic, but has been a blast to make and mess around with friends.
 
 Feel free to contribute!
+
+## Disclaimer
+
+**I'm not responsible for any injury or hearing loss caused by this app!**
+_There are volume settings for the sounds that you load, but user discretion is required to prevent playing sounds too loudly. For example, some extremely loud, bass-boosted sounds need to be played at 1% volume to be tolerable_
+
+This is a small passion project. There will be bugs and platform / device dependencies that aren't accounted for.
+
+## Setup
+
+As of right now, my current setup for running this app is Windows 10 OS, with SteelSeries' SonarGG Software for managing audio devices.
+
+**In theory**, just about any audio device management software like Virtual Audio Cable, SonarGG, Voicemeeter, etc. should be usable with this app.
+
+## Stack
+
+Backend
+
+- `Tauri` as the desktop executable
+- `cpal` crate for streaming audio to audio input devices (virtual audio cable / microphone)
+- `rodio` crate for streaming audio to audio output device
+
+Frontend
+
+- `React` for rendering the UI
+- `Typescript` for fuzzy type-matching to Rust equivalents
+- `Tailwind CSS` for styling because its convenient
 
 ## Complete
 
@@ -16,6 +43,7 @@ Feel free to contribute!
 
 ## Ongoing
 
+- ! Default volume for new sounds being added NEEDS to be 1%, so users can experiment and increase volume more safely
 - Make existing keybinds visible in the frontend on initial app open
 - Keyboard listener thats active while the app is open, that plays sound when keybind pressed
 - Check sounds folder after the prompt window closes to refresh all mp3s in the app
