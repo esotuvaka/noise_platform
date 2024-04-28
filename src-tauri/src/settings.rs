@@ -1,56 +1,10 @@
+use crate::errors::CustomError;
+use serde::{Deserialize, Serialize};
 use std::{
-    fmt,
     fs::{self},
-    io,
     path::PathBuf,
 };
-
-use serde::{Deserialize, Serialize};
-
-use tauri::Error as TauriError;
-use tauri::{
-    api::{file, path::desktop_dir},
-    InvokeError,
-};
-
-#[derive(Debug)]
-pub enum CustomError {
-    Error(String),
-}
-impl fmt::Display for CustomError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            CustomError::Error(msg) => write!(f, "Error: {}", msg),
-        }
-    }
-}
-
-// Convert errors to CustomError type for easier handling via ? operator
-impl From<io::Error> for CustomError {
-    fn from(error: io::Error) -> Self {
-        CustomError::Error(error.to_string())
-    }
-}
-impl From<serde_json::Error> for CustomError {
-    fn from(error: serde_json::Error) -> Self {
-        CustomError::Error(error.to_string())
-    }
-}
-impl From<TauriError> for CustomError {
-    fn from(error: TauriError) -> Self {
-        CustomError::Error(error.to_string())
-    }
-}
-impl From<CustomError> for InvokeError {
-    fn from(error: CustomError) -> Self {
-        InvokeError::from(error.to_string())
-    }
-}
-impl From<tauri::api::Error> for CustomError {
-    fn from(error: tauri::api::Error) -> Self {
-        CustomError::Error(error.to_string())
-    }
-}
+use tauri::api::{file, path::desktop_dir};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Setting {
@@ -97,7 +51,11 @@ pub fn save_setting(file_name: String, keybind: String, volume: f32) -> Result<(
     let mut settings: Vec<Setting> =
         serde_json::from_str(&file_content).unwrap_or_else(|_| Vec::new());
 
-    if let Some(existing_setting) = settings.iter_mut().find(|kb| kb.filename == file_name) {
+    if let Some(existing_setting) = settings
+        .iter_mut()
+        .find(|setting: &&mut Setting| setting.filename == file_name)
+    // Borrowing the mutable reference to the setting
+    {
         existing_setting.letter = keybind.to_lowercase().to_owned();
         existing_setting.volume = volume;
     } else {
