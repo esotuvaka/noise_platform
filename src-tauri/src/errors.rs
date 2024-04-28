@@ -1,3 +1,4 @@
+use lofty::LoftyError;
 use std::{fmt, io};
 use tauri::Error as TauriError;
 use tauri::InvokeError;
@@ -37,6 +38,11 @@ impl From<CustomError> for InvokeError {
 }
 impl From<tauri::api::Error> for CustomError {
     fn from(error: tauri::api::Error) -> Self {
+        CustomError::Error(error.to_string())
+    }
+}
+impl From<LoftyError> for CustomError {
+    fn from(error: LoftyError) -> Self {
         CustomError::Error(error.to_string())
     }
 }
