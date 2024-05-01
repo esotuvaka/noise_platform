@@ -40,15 +40,17 @@ Frontend
 - Get file duration
 - Map keybinds (and save them so they persist between app open/close)
 - Button to preview listening to the sound
+- ! Default volume for new sounds being added NEEDS to be 1%, so users can experiment and increase volume more safely
+- Make existing keybinds visible in the frontend on initial app open
+- Play the sound through the mic at same time as it plays in headphones
+- Volume settings
+- Keyboard listener thats active while the app is open, that plays sound when keybind pressed
 
 ## Ongoing
 
-- ! Default volume for new sounds being added NEEDS to be 1%, so users can experiment and increase volume more safely
-- Make existing keybinds visible in the frontend on initial app open
-- Keyboard listener thats active while the app is open, that plays sound when keybind pressed
+- ! Add setting for tracking user vs listener volume. Update structs / interfaces, frontend state, and backend object construction accordingly.
+- ? Create util function to grab the desktop dir and settings.json file
 - Check sounds folder after the prompt window closes to refresh all mp3s in the app
-- Play the sound through the mic at same time as it plays in headphones
-- Volume settings
 
 ## Observations:
 
