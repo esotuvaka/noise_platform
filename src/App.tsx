@@ -28,47 +28,9 @@ function App() {
 	const [selectedFile, setSelectedFile] = useState<File>();
 	const [newSetting, setNewSetting] = useState<Setting>({
 		filename: "",
-		letter: "",
-		volume: 100,
+		letter: "?",
+		volume: 1,
 	});
-
-	useEffect(() => {
-		getSoundFiles();
-		loadSettings();
-	}, []);
-
-	useEffect(() => {
-		setTimeout(() => {}, 100);
-		const callback = (event: KeyboardEvent) => {
-			if (
-				event.altKey &&
-				fileData.some(
-					(file) => event.key.toLowerCase() === file.keybind.toLowerCase()
-				)
-			) {
-				console.log("ALT + KEY PRESSED!");
-				const file = fileData.find(
-					(file) => event.key.toLowerCase() === file.keybind.toLowerCase()
-				);
-				if (file) {
-					console.log("PLAYING SOUND FILE");
-					playSound(file);
-				}
-			}
-		};
-		window.addEventListener("keydown", callback);
-
-		return () => {
-			window.removeEventListener("keydown", callback);
-		};
-	}, [fileData]);
-
-	async function getSoundDuration(filePath: string) {
-		let soundDuration: number = await invoke("get_sound_duration", {
-			file_path: filePath,
-		});
-		return soundDuration;
-	}
 
 	async function getSoundFiles() {
 		if (!(await soundFolderExists())) {
@@ -104,6 +66,7 @@ function App() {
 				);
 
 				const keybind = matchingSetting?.letter.toUpperCase();
+				const volume = matchingSetting?.volume || 1;
 
 				setFileData((prev) => [
 					...prev,
@@ -112,11 +75,85 @@ function App() {
 						path: entry.path,
 						duration: entryDuration,
 						keybind: keybind || "?",
-						volume: 100,
+						volume: volume,
 					},
 				]);
 			}
 		}
+	}
+
+	async function loadSettings() {
+		const settings: Setting[] = await invoke("load_settings");
+
+		const updatedFileData: File[] = fileData.map((file) => {
+			const matchingSetting = settings.find(
+				(sett) => sett.filename === file.name
+			);
+
+			if (matchingSetting) {
+				return {
+					...file,
+					keybind: matchingSetting.letter.toUpperCase(),
+					volume: matchingSetting.volume,
+				};
+			}
+			return file;
+		});
+
+		setFileData(updatedFileData);
+	}
+
+	useEffect(() => {
+		getSoundFiles();
+		loadSettings();
+	}, []);
+
+	async function playSound(file: File) {
+		await invoke("play_sound", {
+			file_path: file.path,
+			volume: file.volume,
+		});
+	}
+
+	useEffect(() => {
+		setTimeout(() => {}, 100);
+		const callback = (event: KeyboardEvent) => {
+			if (
+				event.altKey &&
+				fileData.some(
+					(file) => event.key.toLowerCase() === file.keybind.toLowerCase()
+				)
+			) {
+				const file = fileData.find(
+					(file) => event.key.toLowerCase() === file.keybind.toLowerCase()
+				);
+				if (file) {
+					playSound(file);
+				}
+			}
+		};
+		window.addEventListener("keydown", callback);
+
+		return () => {
+			window.removeEventListener("keydown", callback);
+		};
+	}, [fileData]);
+
+	useEffect(() => {
+		if (selectedFile) {
+			setNewSetting({
+				filename: selectedFile.name,
+				letter: selectedFile.keybind,
+				volume: selectedFile.volume,
+			});
+		}
+	}, [selectedFile]);
+
+	async function getSoundDuration(filePath: string) {
+		let soundDuration: number = await invoke("get_sound_duration", {
+			file_path: filePath,
+		});
+		return soundDuration;
 	}
 
 	async function soundFolderExists() {
@@ -156,27 +193,6 @@ function App() {
 		setShowModal(true);
 	}
 
-	async function loadSettings() {
-		const settings: Setting[] = await invoke("load_settings");
-
-		const updatedFileData: File[] = fileData.map((file) => {
-			const matchingSetting = settings.find(
-				(sett) => sett.filename === file.name
-			);
-
-			if (matchingSetting) {
-				console.log("MATCH!", matchingSetting, file.name);
-				return {
-					...file,
-					keybind: matchingSetting.letter.toUpperCase(),
-				};
-			}
-			return file;
-		});
-
-		setFileData(updatedFileData);
-	}
-
 	async function handleSaveSetting() {
 		await invoke("save_setting", {
 			file_name: selectedFile?.name,
@@ -199,20 +215,7 @@ function App() {
 		setFileData(updatedFiles);
 		setShowModal(false);
 		setSelectedFile(undefined);
-		setNewSetting({ filename: "", letter: "", volume: 100 });
-	}
-
-	async function playSound(file: File) {
-		await invoke("play_sound", {
-			file_path: file.path,
-			volume: file.volume,
-		});
-	}
-
-	function refreshFilesState() {
-		getSoundFiles();
-		console.log("FILEDATA STATE");
-		console.log(fileData);
+		setNewSetting({ filename: "", letter: "", volume: 1 });
 	}
 
 	return (
@@ -233,7 +236,7 @@ function App() {
 					className="row"
 					onSubmit={(e) => {
 						e.preventDefault();
-						refreshFilesState();
+						getSoundFiles();
 					}}
 				>
 					<button type="submit">Refresh</button>
@@ -246,25 +249,27 @@ function App() {
 						<tr>
 							<th>Filename</th>
 							<th>Duration</th>
-							<th>Setting</th>
+							<th>Keybind</th>
+							<th>User Volume</th>
+							<th>Listener Volume</th>
 							<th>Edit</th>
 							<th>Preview</th>
-							<th>Volume</th>
 						</tr>
 					</thead>
 					<tbody>
-						{fileData.map((file, idx) => (
-							<tr key={idx}>
+						{fileData.map((file, i) => (
+							<tr key={i}>
 								<td className="table-filename">{file.name}</td>
 								<td>{file.duration}s</td>
 								<td>Alt + {file.keybind}</td>
+								<td>{file.volume}%</td>
+								<td>100%</td>
 								<td>
 									<button onClick={() => handleEditClick(file)}>Edit</button>
 								</td>
 								<td>
 									<button onClick={() => playSound(file)}>Preview</button>
 								</td>
-								<td>{file.volume}%</td>
 							</tr>
 						))}
 					</tbody>
@@ -283,16 +288,14 @@ function App() {
 								Alt +
 							</label>
 							<input
-								className="modal-input"
+								className="modal-input-keybind"
 								type="text"
 								id="newSetting"
-								placeholder={newSetting.letter}
-								value={newSetting.letter}
+								placeholder={selectedFile?.keybind || "?"}
 								onChange={(e) =>
 									setNewSetting({
-										filename: selectedFile!.name,
+										...newSetting,
 										letter: e.target.value,
-										volume: newSetting.volume,
 									})
 								}
 							/>
@@ -303,14 +306,12 @@ function App() {
 								className="modal-input-volume"
 								type="number"
 								id="newVolume"
-								placeholder={newSetting.volume.toString()}
-								value={newSetting.volume}
+								placeholder={selectedFile?.volume.toString() || "1"}
 								onChange={(e) => {
 									const volume = parseInt(e.target.value);
 									if (volume >= 0 && volume <= 100) {
 										setNewSetting({
-											filename: selectedFile!.name,
-											letter: newSetting.letter,
+											...newSetting,
 											volume: volume,
 										});
 									}
