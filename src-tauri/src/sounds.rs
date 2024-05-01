@@ -70,13 +70,14 @@ pub fn play_sound(file_path: String, volume: f32) {
         // Stream audio file to the mic
         let (_stream, stream_handle) = OutputStream::try_from_device(&output_device).unwrap();
         let sink = Sink::try_new(&stream_handle).unwrap();
+        sink.set_volume(volume / 1000.0);
         let reader = BufReader::new(file);
         sink.append(Decoder::new(reader).unwrap());
 
         // Stream audio to headset
         let (_stream, stream_handle) = OutputStream::try_default().unwrap();
         let sink = Sink::try_new(&stream_handle).unwrap();
-        sink.set_volume(volume / 100.0);
+        sink.set_volume(volume / 1000.0);
         let file = File::open(&file_path).unwrap();
         let reader = BufReader::new(file);
         sink.append(Decoder::new(reader).unwrap());
