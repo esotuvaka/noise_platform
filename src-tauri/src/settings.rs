@@ -1,10 +1,7 @@
 use crate::errors::CustomError;
 use rdev::{listen, Event, EventType, Key};
 use serde::{Deserialize, Serialize};
-use std::{
-    fs::{self},
-    path::PathBuf,
-};
+use std::{collections::HashMap, fs, path::PathBuf};
 use tauri::api::{file, path::desktop_dir};
 
 use crate::sounds;
@@ -67,7 +64,7 @@ impl KeyState {
         }
     }
 
-    fn callback(&mut self, event: Event) {
+    fn callback(&mut self, event: Event, key_map: HashMap<Key, Setting>) {
         match event.event_type {
             EventType::KeyPress(Key::Alt) => {
                 self.alt_pressed = true;
@@ -88,11 +85,8 @@ impl KeyState {
                 if self.alt_pressed && !self.other_key_pressed {
                     self.other_key_pressed = true;
 
-                    if let Some(setting) = self
-                        .settings
-                        .iter()
-                        .find(|setting| KeyState::string_to_key(&setting.letter) == Some(key))
-                    {
+                    // Instead of iterating each time a key is pressed, we should do a lookup of the key_vec
+                    if let Some(setting) = key_map.get(&key) {
                         let desktop = desktop_dir().unwrap();
                         let sound_file_path = PathBuf::from(&desktop)
                             .join("Noise Platform Sounds")
@@ -140,8 +134,15 @@ pub fn load_settings() -> Result<Vec<Setting>, CustomError> {
 
     key_state.settings = settings.clone();
 
+    let mut key_map = HashMap::new();
+    for setting in settings.clone() {
+        if let Some(key) = KeyState::string_to_key(&setting.letter) {
+            key_map.insert(key, setting);
+        }
+    }
+
     std::thread::spawn(move || {
-        match listen(move |event| key_state.callback(event)) {
+        match listen(move |event| key_state.callback(event, key_map.clone())) {
             Ok(listener) => listener,
             Err(e) => {
                 eprintln!("Error: {:?}", e);
