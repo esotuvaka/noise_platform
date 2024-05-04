@@ -13,7 +13,10 @@ use crate::sounds;
 pub struct Setting {
     pub filename: String,
     pub letter: String,
-    pub volume: f32,
+    #[serde(rename = "userVolume")]
+    pub user_volume: f32,
+    #[serde(rename = "listenerVolume")]
+    pub listener_volume: f32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -95,35 +98,19 @@ impl KeyState {
                             .join("Noise Platform Sounds")
                             .join(&setting.filename);
 
-                        let file_path = sound_file_path.to_str().unwrap();
-
-                        sounds::play_sound(file_path.to_string(), setting.volume);
+                        if let Some(file_path) = sound_file_path.to_str() {
+                            sounds::play_sound(
+                                file_path.to_string(),
+                                setting.user_volume,
+                                setting.listener_volume,
+                            );
+                        }
                     }
                 }
             }
             _ => (),
         }
     }
-}
-
-#[tauri::command(rename_all = "snake_case")]
-pub fn load_settings() -> Result<Vec<Setting>, CustomError> {
-    let (settings, _settings_file_path) = get_settings()?;
-
-    let mut key_state = KeyState::new();
-
-    key_state.settings = settings.clone();
-
-    std::thread::spawn(move || {
-        match listen(move |event| key_state.callback(event)) {
-            Ok(listener) => listener,
-            Err(e) => {
-                eprintln!("Error: {:?}", e);
-            }
-        };
-    });
-
-    Ok(settings)
 }
 
 fn get_settings() -> Result<(Vec<Setting>, PathBuf), CustomError> {
@@ -146,7 +133,32 @@ fn get_settings() -> Result<(Vec<Setting>, PathBuf), CustomError> {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-pub fn save_setting(file_name: String, keybind: String, volume: f32) -> Result<(), CustomError> {
+pub fn load_settings() -> Result<Vec<Setting>, CustomError> {
+    let (settings, _settings_file_path) = get_settings()?;
+
+    let mut key_state = KeyState::new();
+
+    key_state.settings = settings.clone();
+
+    std::thread::spawn(move || {
+        match listen(move |event| key_state.callback(event)) {
+            Ok(listener) => listener,
+            Err(e) => {
+                eprintln!("Error: {:?}", e);
+            }
+        };
+    });
+
+    Ok(settings)
+}
+
+#[tauri::command(rename_all = "snake_case")]
+pub fn save_setting(
+    file_name: String,
+    keybind: String,
+    user_volume: f32,
+    listener_volume: f32,
+) -> Result<(), CustomError> {
     let (mut settings, settings_file_path) = get_settings()?;
 
     if let Some(existing_setting) = settings
@@ -154,12 +166,14 @@ pub fn save_setting(file_name: String, keybind: String, volume: f32) -> Result<(
         .find(|setting: &&mut Setting| setting.filename == file_name)
     {
         existing_setting.letter = keybind.to_lowercase().to_owned();
-        existing_setting.volume = volume;
+        existing_setting.user_volume = user_volume;
+        existing_setting.listener_volume = listener_volume;
     } else {
         settings.push(Setting {
             filename: file_name.to_owned(),
             letter: keybind.to_lowercase().to_owned(),
-            volume,
+            user_volume,
+            listener_volume,
         });
     }
 

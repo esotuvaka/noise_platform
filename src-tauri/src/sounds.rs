@@ -40,7 +40,7 @@ fn err_fn(err: cpal::StreamError) {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-pub fn play_sound(file_path: String, volume: f32) {
+pub fn play_sound(file_path: String, user_volume: f32, listener_volume: f32) {
     std::thread::spawn(move || {
         // Open the audio file
         let file = File::open(&file_path).unwrap();
@@ -70,14 +70,14 @@ pub fn play_sound(file_path: String, volume: f32) {
         // Stream audio file to the mic
         let (_stream, stream_handle) = OutputStream::try_from_device(&output_device).unwrap();
         let sink = Sink::try_new(&stream_handle).unwrap();
-        sink.set_volume(volume / 1000.0);
+        sink.set_volume(listener_volume / 1000.0);
         let reader = BufReader::new(file);
         sink.append(Decoder::new(reader).unwrap());
 
         // Stream audio to headset
         let (_stream, stream_handle) = OutputStream::try_default().unwrap();
         let sink = Sink::try_new(&stream_handle).unwrap();
-        sink.set_volume(volume / 1000.0);
+        sink.set_volume(user_volume / 1000.0);
         let file = File::open(&file_path).unwrap();
         let reader = BufReader::new(file);
         sink.append(Decoder::new(reader).unwrap());
