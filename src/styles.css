@@ -9,15 +9,37 @@
 
 	font-synthesis: none;
 	text-rendering: optimizeLegibility;
+
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	-webkit-text-size-adjust: 100%;
+
+	--element-background: #2f2f2f;
+	--highlight-color: #058ed9;
+	--border-color: #f5b841;
+	--dark-ash: #0f0f0f;
 }
 
-/* * {
-	border: red;
-	border-style: solid;
-} */
+body {
+	margin: 0;
+	padding: 0;
+	background-image: linear-gradient(#2f2f2f69, #0f0f0f);
+}
+
+.header {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.h1 {
+	background-color: #2f2f2f;
+	padding: 1rem;
+	padding-left: 3rem;
+	padding-right: 3rem;
+	margin: 0;
+	margin-bottom: 2rem;
+}
 
 .button-container {
 	display: flex;
@@ -26,13 +48,16 @@
 	margin-bottom: 2rem;
 }
 
-th {
+.table-header {
 	padding-left: 1rem;
 	padding-right: 1rem;
-	border-top: none;
-	border-left: none;
-	border-right: none;
-	border-bottom: 1px solid #0f0f0f;
+	text-align: start;
+}
+
+.td {
+	padding-left: 1rem;
+	padding-right: 1rem;
+	text-align: start;
 }
 
 .table-container {
@@ -42,6 +67,8 @@ th {
 
 .sound-table {
 	width: fit-content;
+	background: #2f2f2f;
+	padding: 1rem;
 }
 
 .keybind-input {
@@ -53,45 +80,28 @@ th {
 .container {
 	margin: 0;
 	padding-top: 10vh;
+	padding-bottom: 10vh;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	text-align: center;
 }
 
-.logo {
-	height: 6em;
-	padding: 1.5em;
-	will-change: filter;
-	transition: 0.75s;
-}
-
-.logo.tauri:hover {
-	filter: drop-shadow(0 0 2em #24c8db);
-}
-
-.row {
+.button-container-inner {
 	display: flex;
 	justify-content: center;
+	gap: 2rem;
+	background-color: #2f2f2f;
+	padding: 1rem;
 }
 
-a {
-	font-weight: 500;
-	color: #646cff;
-	text-decoration: inherit;
-}
-
-a:hover {
-	color: #535bf2;
-}
-
-h1 {
-	text-align: center;
+body {
+	height: 100vh;
+	width: 100vw;
 }
 
 input,
 button {
-	border-radius: 8px;
 	border: 1px solid transparent;
 	padding: 0.6em 1.2em;
 	font-size: 1em;
@@ -108,10 +118,10 @@ button {
 }
 
 button:hover {
-	border-color: #396cd8;
+	border-color: var(--border-color);
 }
 button:active {
-	border-color: #396cd8;
+	border-color: var(--border-color);
 	background-color: #e8e8e8;
 }
 
@@ -119,8 +129,7 @@ button:active {
 .modal {
 	display: none; /* Hide the modal by default */
 	position: fixed; /* Fixed position to overlay the entire screen */
-	top: 0;
-	left: 0;
+	inset: 0;
 	width: 100%;
 	height: 100%;
 	background-color: rgba(
@@ -133,19 +142,20 @@ button:active {
 }
 
 .modal-input:focus {
-	border-color: #396cd8;
+	border-color: var(--border-color);
 }
 
 .modal-input-keybind {
-	margin-right: 1rem;
 	width: 2rem;
 	text-align: center;
+	vertical-align: middle;
 }
 
 .modal-input-volume {
-	margin-right: 1rem;
-	width: 3rem;
+	width: 3.5rem;
 	text-align: center;
+	text-align: center;
+	vertical-align: middle;
 }
 
 .modal-content {
@@ -160,8 +170,28 @@ button:active {
 	z-index: 2;
 }
 
+.modal-inner {
+	display: flex;
+	flex-direction: column;
+}
+
+.modal-setting {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	margin-bottom: 1rem;
+}
+
+.modal-close {
+	display: flex;
+	justify-content: flex-end;
+}
+
 .modal-prompt {
-	margin-right: 1rem;
+	display: flex;
+	text-align: center;
+	justify-content: end;
+	margin-top: 0.5rem;
+	margin-right: 0.5rem;
 }
 
 /* Close button */
@@ -171,6 +201,8 @@ button:active {
 	font-size: 28px;
 	font-weight: bold;
 	cursor: pointer;
+	display: flex;
+	align-items: end;
 }
 
 .close:hover,
@@ -190,18 +222,10 @@ button {
 	outline: none;
 }
 
-#greet-input {
-	margin-right: 5px;
-}
-
 @media (prefers-color-scheme: dark) {
 	:root {
 		color: #f6f6f6;
-		background-color: #2f2f2f;
-	}
-
-	a:hover {
-		color: #24c8db;
+		background-color: #0f0f0f;
 	}
 
 	input,

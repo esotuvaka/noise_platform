@@ -13,13 +13,15 @@ interface File {
 	path: string;
 	duration: number;
 	keybind: string;
-	volume: number;
+	userVolume: number;
+	listenerVolume: number;
 }
 
 interface Setting {
 	filename: string;
 	letter: string;
-	volume: number;
+	userVolume: number;
+	listenerVolume: number;
 }
 
 function App() {
@@ -29,7 +31,8 @@ function App() {
 	const [newSetting, setNewSetting] = useState<Setting>({
 		filename: "",
 		letter: "?",
-		volume: 1,
+		userVolume: 1,
+		listenerVolume: 1,
 	});
 
 	async function getSoundFiles() {
@@ -66,7 +69,8 @@ function App() {
 				);
 
 				const keybind = matchingSetting?.letter.toUpperCase();
-				const volume = matchingSetting?.volume || 1;
+				const userVolume = matchingSetting?.userVolume || 1;
+				const listenerVolume = matchingSetting?.listenerVolume || 1;
 
 				setFileData((prev) => [
 					...prev,
@@ -75,7 +79,8 @@ function App() {
 						path: entry.path,
 						duration: entryDuration,
 						keybind: keybind || "?",
-						volume: volume,
+						userVolume: userVolume,
+						listenerVolume: listenerVolume,
 					},
 				]);
 			}
@@ -94,7 +99,7 @@ function App() {
 				return {
 					...file,
 					keybind: matchingSetting.letter.toUpperCase(),
-					volume: matchingSetting.volume,
+					userVolume: matchingSetting.userVolume,
 				};
 			}
 			return file;
@@ -111,40 +116,18 @@ function App() {
 	async function playSound(file: File) {
 		await invoke("play_sound", {
 			file_path: file.path,
-			volume: file.volume,
+			user_volume: file.userVolume,
+			listener_volume: file.listenerVolume,
 		});
 	}
-
-	useEffect(() => {
-		setTimeout(() => {}, 100);
-		const callback = (event: KeyboardEvent) => {
-			if (
-				event.altKey &&
-				fileData.some(
-					(file) => event.key.toLowerCase() === file.keybind.toLowerCase()
-				)
-			) {
-				const file = fileData.find(
-					(file) => event.key.toLowerCase() === file.keybind.toLowerCase()
-				);
-				if (file) {
-					playSound(file);
-				}
-			}
-		};
-		window.addEventListener("keydown", callback);
-
-		return () => {
-			window.removeEventListener("keydown", callback);
-		};
-	}, [fileData]);
 
 	useEffect(() => {
 		if (selectedFile) {
 			setNewSetting({
 				filename: selectedFile.name,
 				letter: selectedFile.keybind,
-				volume: selectedFile.volume,
+				userVolume: selectedFile.userVolume,
+				listenerVolume: selectedFile.listenerVolume,
 			});
 		}
 	}, [selectedFile]);
@@ -197,7 +180,8 @@ function App() {
 		await invoke("save_setting", {
 			file_name: selectedFile?.name,
 			keybind: newSetting.letter,
-			volume: newSetting.volume,
+			user_volume: newSetting.userVolume,
+			listener_volume: newSetting.listenerVolume,
 		});
 
 		const updatedFiles: File[] = fileData.map((file) => {
@@ -205,7 +189,8 @@ function App() {
 				return {
 					...file,
 					keybind: newSetting.letter.toUpperCase(), // uppercase for display, lowercase for logic to prevent shift key weirdness
-					volume: newSetting.volume,
+					userVolume: newSetting.userVolume,
+					listenerVolume: newSetting.listenerVolume,
 				};
 			} else {
 				return file;
@@ -215,55 +200,63 @@ function App() {
 		setFileData(updatedFiles);
 		setShowModal(false);
 		setSelectedFile(undefined);
-		setNewSetting({ filename: "", letter: "", volume: 1 });
+		setNewSetting({
+			filename: "",
+			letter: "",
+			userVolume: 1,
+			listenerVolume: 1,
+		});
 	}
 
 	return (
 		<div className="container">
-			<h1>Welcome to Noise Platform!</h1>
-
+			<div className="header">
+				<h1 className="h1">Welcome to Noise Platform!</h1>
+			</div>
 			<div className="button-container">
-				<form
-					className="row"
-					onSubmit={(e) => {
-						e.preventDefault();
-						openSoundsFolder();
-					}}
-				>
-					<button type="submit">Open Sounds Folder</button>
-				</form>
-				<form
-					className="row"
-					onSubmit={(e) => {
-						e.preventDefault();
-						getSoundFiles();
-					}}
-				>
-					<button type="submit">Refresh</button>
-				</form>
+				<div className="button-container-inner">
+					<form
+						className="row"
+						onSubmit={(e) => {
+							e.preventDefault();
+							openSoundsFolder();
+						}}
+					>
+						<button type="submit">Open Sounds Folder</button>
+					</form>
+					<form
+						className="row"
+						onSubmit={(e) => {
+							e.preventDefault();
+							getSoundFiles();
+						}}
+					>
+						<button type="submit">Refresh</button>
+					</form>
+				</div>
 			</div>
 
 			<div className="table-container">
 				<table className="sound-table">
 					<thead>
 						<tr>
-							<th>Filename</th>
-							<th>Duration</th>
-							<th>Keybind</th>
-							<th>User Volume</th>
-							<th>Listener Volume</th>
-							<th>Edit</th>
-							<th>Preview</th>
+							<th className="table-header">Filename</th>
+							<th className="table-header">Duration</th>
+							<th className="table-header">Keybind</th>
+							<th className="table-header">User Volume</th>
+							<th className="table-header">Listener Volume</th>
+							<th className="th-button">Edit</th>
+							<th className="th-button">Preview</th>
 						</tr>
 					</thead>
 					<tbody>
 						{fileData.map((file, i) => (
 							<tr key={i}>
-								<td className="table-filename">{file.name}</td>
-								<td>{file.duration}s</td>
-								<td>Alt + {file.keybind}</td>
-								<td>{file.volume}%</td>
-								<td>100%</td>
+								<td className="td">{file.name}</td>
+								<td className="td">{file.duration}s</td>
+								<td className="td">Alt + {file.keybind}</td>
+								<td className="td">{file.userVolume}%</td>
+								<td className="td">{file.listenerVolume}%</td>
 								<td>
 									<button onClick={() => handleEditClick(file)}>Edit</button>
 								</td>
@@ -278,46 +271,74 @@ function App() {
 				{showModal && (
 					<div className={`modal ${showModal ? "active" : ""}`}>
 						<div className="modal-content">
-							<span className="close" onClick={() => setShowModal(false)}>
-								&times;
-							</span>
-							<h2>
-								Edit Setting for "{selectedFile ? selectedFile.name : "?"}"
-							</h2>
-							<label className="modal-prompt" htmlFor="newSetting">
-								Alt +
-							</label>
-							<input
-								className="modal-input-keybind"
-								type="text"
-								id="newSetting"
-								placeholder={selectedFile?.keybind || "?"}
-								onChange={(e) =>
-									setNewSetting({
-										...newSetting,
-										letter: e.target.value,
-									})
-								}
-							/>
-							<label className="modal-prompt" htmlFor="newVolume">
-								Volume:
-							</label>
-							<input
-								className="modal-input-volume"
-								type="number"
-								id="newVolume"
-								placeholder={selectedFile?.volume.toString() || "1"}
-								onChange={(e) => {
-									const volume = parseInt(e.target.value);
-									if (volume >= 0 && volume <= 100) {
-										setNewSetting({
-											...newSetting,
-											volume: volume,
-										});
-									}
-								}}
-							/>
-							<button onClick={handleSaveSetting}>Save</button>
+							<div className="modal-inner">
+								<div className="modal-close">
+									<span className="close" onClick={() => setShowModal(false)}>
+										&times;
+									</span>
+								</div>
+								<h2>
+									Edit Setting for "{selectedFile ? selectedFile.name : "?"}"
+								</h2>
+								<div className="modal-setting">
+									<label className="modal-prompt" htmlFor="newSetting">
+										Alt +
+									</label>
+									<input
+										className="modal-input-keybind"
+										type="text"
+										id="newSetting"
+										placeholder={selectedFile?.keybind || "?"}
+										onChange={(e) =>
+											setNewSetting({
+												...newSetting,
+												letter: e.target.value,
+											})
+										}
+									/>
+								</div>
+								<div className="modal-setting">
+									<label className="modal-prompt" htmlFor="newUserVolume">
+										User Volume:
+									</label>
+									<input
+										className="modal-input-volume"
+										type="number"
+										id="newUserVolume"
+										placeholder={selectedFile?.userVolume.toString() || "1"}
+										onChange={(e) => {
+											const userVolume = parseInt(e.target.value);
+											if (userVolume >= 0 && userVolume <= 100) {
+												setNewSetting({
+													...newSetting,
+													userVolume: userVolume,
+												});
+											}
+										}}
+									/>
+								</div>
+								<div className="modal-setting">
+									<label className="modal-prompt" htmlFor="newListenerVolume">
+										Listener Volume:
+									</label>
+									<input
+										className="modal-input-volume"
+										type="number"
+										id="newListenerVolume"
+										placeholder={selectedFile?.listenerVolume.toString() || "1"}
+										onChange={(e) => {
+											const listenerVolume = parseInt(e.target.value);
+											if (listenerVolume >= 0 && listenerVolume <= 100) {
+												setNewSetting({
+													...newSetting,
+													listenerVolume: listenerVolume,
+												});
+											}
+										}}
+									/>
+								</div>
+								<button onClick={handleSaveSetting}>Save</button>
+							</div>
 						</div>
 					</div>
 				)}
