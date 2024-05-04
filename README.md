@@ -44,9 +44,11 @@ Frontend
 - Volume settings
 - Keyboard listener thats active while the app is open, that plays sound when keybind pressed
 - ! Add setting for tracking user vs listener volume. Update structs / interfaces, frontend state, and backend object construction accordingly.
+- ! Refactor `string_to_key` to create a hashmap of the existing keybinds based on the keybinds in the settings. This will prevent unnecessary processing from occurring on key press
 
 ## Ongoing
 
+- Add the ListenError (rdev crate) to our CustomError type
 - ? Customizable color theme settings
 - ? Compilation to Linux Distros via WSL
 - ? Ability to manually configure audio input and output devices
