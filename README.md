@@ -6,7 +6,7 @@ Rather than purchasing a soundboard, this was created as a fun project to experi
 
 Feel free to contribute!
 
-![alt text](screenshots/noise_platform.png)
+![alt text](screenshots/noise_platform_0.1.png)
 
 ## Setup
 
