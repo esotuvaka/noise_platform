@@ -6,18 +6,17 @@ Rather than purchasing a soundboard, this was created as a fun project to experi
 
 Feel free to contribute!
 
-## Disclaimer
-
-**I'm not responsible for any injury or hearing loss caused by this app!**
-_There are volume settings for the sounds that you load, but user discretion is required to prevent playing sounds too loudly. For example, some extremely loud, bass-boosted sounds need to be played at 1% volume to be tolerable_
-
-This is a small passion project. There will be bugs and platform / device dependencies that aren't accounted for.
+![alt text](screenshots/noise_platform.png)
 
 ## Setup
 
-As of right now, my current setup for running this app is Windows 10 OS, with SteelSeries' SonarGG Software for managing audio devices.
+My current setup for running this app is Windows 10 OS, with SteelSeries' SonarGG Software for managing audio devices.
+
+Be sure to disable or lower AI audio filtering and background noise filtering as they'll make sounds come through unclearly. For example, use 'Standard' noise suppression on Discord:
 
 **In theory**, just about any audio device management software like Virtual Audio Cable, SonarGG, Voicemeeter, etc. should be usable with this app.
+
+![alt text](screenshots/discord-noise-suppression.png)
 
 ## Stack
 
@@ -30,7 +29,7 @@ Backend
 Frontend
 
 - `React` for rendering the UI
-- `Typescript` for fuzzy type-matching to Rust equivalents
+- `Typescript` for rough type-matching to Rust equivalents
 - `Tailwind CSS` for styling because its convenient
 
 ## Complete
@@ -40,18 +39,21 @@ Frontend
 - Get file duration
 - Map keybinds (and save them so they persist between app open/close)
 - Button to preview listening to the sound
-- ! Default volume for new sounds being added NEEDS to be 1%, so users can experiment and increase volume more safely
 - Make existing keybinds visible in the frontend on initial app open
 - Play the sound through the mic at same time as it plays in headphones
 - Volume settings
 - Keyboard listener thats active while the app is open, that plays sound when keybind pressed
+- ! Add setting for tracking user vs listener volume. Update structs / interfaces, frontend state, and backend object construction accordingly.
 
 ## Ongoing
 
-- ! Add setting for tracking user vs listener volume. Update structs / interfaces, frontend state, and backend object construction accordingly.
+- ? Customizable color theme settings
+- ? Compilation to Linux Distros via WSL
+- ? Ability to manually configure audio input and output devices
 - ? Create util function to grab the desktop dir and settings.json file
 - Check sounds folder after the prompt window closes to refresh all mp3s in the app
 
-## Observations:
+## Disclaimer
 
-- Can either get the keybinds data in Rust or React
+**I'm not responsible for any injury or hearing loss caused by this app!**
+_There are volume settings for the sounds that you load, but user discretion is required to prevent playing sounds too loudly for yourself or other listeners._
