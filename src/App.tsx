@@ -210,9 +210,6 @@ function App() {
 
 	return (
 		<div className="container">
-			<div className="header">
-				<h1 className="h1">Welcome to Noise Platform!</h1>
-			</div>
 			<div className="button-container">
 				<div className="button-container-inner">
 					<form
@@ -243,8 +240,8 @@ function App() {
 							<th className="table-header">Filename</th>
 							<th className="table-header">Duration</th>
 							<th className="table-header">Keybind</th>
-							<th className="table-header">User Volume</th>
-							<th className="table-header">Listener Volume</th>
+							<th className="table-header">User</th>
+							<th className="table-header">Listener</th>
 							<th className="th-button">Edit</th>
 							<th className="th-button">Preview</th>
 						</tr>
@@ -252,7 +249,11 @@ function App() {
 					<tbody>
 						{fileData.map((file, i) => (
 							<tr key={i}>
-								<td className="td">{file.name}</td>
+								<td className="td">
+									{file.name.length > 20
+										? file.name.slice(0, 20) + "..."
+										: file.name}
+								</td>
 								<td className="td">{file.duration}s</td>
 								<td className="td">Alt + {file.keybind}</td>
 								<td className="td">{file.userVolume}%</td>
