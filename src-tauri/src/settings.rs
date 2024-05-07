@@ -1,4 +1,5 @@
 use crate::errors::CustomError;
+use cpal::traits::{DeviceTrait, HostTrait};
 use rdev::{listen, Event, EventType, Key};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fs, path::PathBuf};
@@ -14,6 +15,14 @@ pub struct Setting {
     pub user_volume: f32,
     #[serde(rename = "listenerVolume")]
     pub listener_volume: f32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SettingsFile {
+    pub input_device: String,
+    pub output_device: String,
+    pub audio_settings: Vec<Setting>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -107,7 +116,7 @@ impl KeyState {
     }
 }
 
-fn get_settings() -> Result<(Vec<Setting>, PathBuf), CustomError> {
+fn get_settings() -> Result<(SettingsFile, PathBuf), CustomError> {
     let desktop = desktop_dir().ok_or(CustomError::Error(
         "Unable to find desktop directory".to_string(),
     ))?;
@@ -121,14 +130,16 @@ fn get_settings() -> Result<(Vec<Setting>, PathBuf), CustomError> {
     }
 
     let settings_content = file::read_string(&settings_file_path)?;
-    let settings: Vec<Setting> = serde_json::from_str(&settings_content)?;
+    let settings_file: SettingsFile = serde_json::from_str(&settings_content)?;
 
-    Ok((settings, settings_file_path))
+    Ok((settings_file, settings_file_path))
 }
 
 #[tauri::command(rename_all = "snake_case")]
 pub fn load_settings() -> Result<Vec<Setting>, CustomError> {
-    let (settings, _settings_file_path) = get_settings()?;
+    let (settings_file, _settings_file_path) = get_settings()?;
+
+    let settings = settings_file.audio_settings;
 
     let mut key_state = KeyState::new();
 
@@ -160,7 +171,9 @@ pub fn save_setting(
     user_volume: f32,
     listener_volume: f32,
 ) -> Result<(), CustomError> {
-    let (mut settings, settings_file_path) = get_settings()?;
+    let (mut settings_file, settings_file_path) = get_settings()?;
+
+    let settings = &mut settings_file.audio_settings;
 
     if let Some(existing_setting) = settings
         .iter_mut()
@@ -178,7 +191,53 @@ pub fn save_setting(
         });
     }
 
-    let settings_string = serde_json::to_string_pretty(&settings)?;
+    let settings_string = serde_json::to_string_pretty(&settings_file)?;
+    fs::write(settings_file_path, settings_string)?;
+
+    Ok(())
+}
+
+// Need to globally set the audio devices to be used in every play_sound function call.
+// This function will be called from the settings page, and the selected devices will be saved to the settings file.
+// The settings file will be read on app startup, and the selected devices will be set as the default devices if there's no overrides in the settings file
+pub fn load_audio_devices() -> Result<(Vec<String>, Vec<String>), CustomError> {
+    let host = cpal::default_host();
+
+    let input_devices = host
+        .input_devices()
+        .map_err(|e| CustomError::Error(e.to_string()))?
+        .map(|device| device.name().unwrap_or("".to_owned()))
+        .collect();
+
+    let output_devices = host
+        .output_devices()
+        .map_err(|e| CustomError::Error(e.to_string()))?
+        .map(|device| device.name().unwrap_or("".to_owned()))
+        .collect();
+
+    Ok((input_devices, output_devices))
+}
+
+pub fn save_audio_devices(input_device: String, output_device: String) -> Result<(), CustomError> {
+    let desktop = desktop_dir().ok_or(CustomError::Error(
+        "Unable to find desktop directory".to_string(),
+    ))?;
+
+    let settings_file_path = PathBuf::from(&desktop)
+        .join("Noise Platform Sounds")
+        .join("settings.json");
+
+    if !settings_file_path.exists() {
+        fs::write(&settings_file_path, "")?;
+    }
+
+    let settings_content = file::read_string(&settings_file_path)?;
+    let mut settings_file: SettingsFile = serde_json::from_str(&settings_content)?;
+
+    settings_file.input_device = input_device;
+    settings_file.output_device = output_device;
+
+    let settings_string = serde_json::to_string_pretty(&settings_file)?;
     fs::write(settings_file_path, settings_string)?;
 
     Ok(())

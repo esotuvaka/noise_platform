@@ -43,6 +43,7 @@ fn err_fn(err: cpal::StreamError) {
 pub fn play_sound(file_path: String, user_volume: f32, listener_volume: f32) {
     std::thread::spawn(move || {
         // Open the audio file
+        dbg!(file_path.clone());
         let file = File::open(&file_path).unwrap();
         let host = cpal::default_host();
 
@@ -124,11 +125,6 @@ pub fn play_sound(file_path: String, user_volume: f32, listener_volume: f32) {
             }
         };
 
-        // Build streams.
-        println!(
-            "Attempting to build both streams with f32 samples and {:?}",
-            config
-        );
         // Initialize the audio input stream to capture the audio from the VAC output
         let config = input_device.default_input_config().unwrap().into();
         let input_stream = input_device
@@ -146,13 +142,7 @@ pub fn play_sound(file_path: String, user_volume: f32, listener_volume: f32) {
         let output_stream = output_device
             .build_output_stream(&output_config, output_data_fn, err_fn, None)
             .unwrap();
-        println!("Successfully built streams.");
 
-        // Play the streams.
-        println!(
-            "Starting the input and output streams with `{}` milliseconds of latency.",
-            50.0
-        );
         input_stream.play().unwrap();
         output_stream.play().unwrap();
 
