@@ -1,7 +1,5 @@
 # NOISE PLATFORM
 
-## A soundboard written in Rust + TypeScript
-
 Rather than purchasing a soundboard, this was created as a fun project to experiment with rust on the desktop. Its basic and not very idiomatic, but has been a blast to make and mess around with friends.
 
 Feel free to contribute!
@@ -48,10 +46,13 @@ Frontend
 
 ## Ongoing
 
+- ! BUG: Sounds can be attempted to be played via keybind even if not available in the noise platform sounds folder
+- ! Ability to manually configure audio input and output devices
+- ? Echo setting
+- ? Distortion setting
 - Add the ListenError (rdev crate) to our CustomError type
 - ? Customizable color theme settings
 - ? Compilation to Linux Distros via WSL
-- ? Ability to manually configure audio input and output devices
 - ? Create util function to grab the desktop dir and settings.json file
 - Check sounds folder after the prompt window closes to refresh all mp3s in the app
 
