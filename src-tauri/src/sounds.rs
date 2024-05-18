@@ -12,7 +12,7 @@ use std::{
 use tauri::api::path::desktop_dir;
 
 #[tauri::command(rename_all = "snake_case")]
-pub fn get_sound_duration(file_path: String) -> Result<u64, CustomError> {
+pub async fn get_sound_duration(file_path: String) -> Result<u64, CustomError> {
     let desktop: PathBuf = desktop_dir().ok_or(CustomError::Error(
         "Unable to find desktop directory".to_string(),
     ))?;
@@ -43,7 +43,6 @@ fn err_fn(err: cpal::StreamError) {
 pub fn play_sound(file_path: String, user_volume: f32, listener_volume: f32) {
     std::thread::spawn(move || {
         // Open the audio file
-        dbg!(file_path.clone());
         let file = File::open(&file_path).unwrap();
         let host = cpal::default_host();
 

@@ -7,6 +7,12 @@ import {
 	writeFile,
 } from "@tauri-apps/api/fs";
 import { invoke } from "@tauri-apps/api/tauri";
+import { IoRefresh } from "react-icons/io5";
+import { FaRegFolderOpen } from "react-icons/fa";
+import { AiOutlineAudio } from "react-icons/ai";
+import { FiHeadphones } from "react-icons/fi";
+
+import DevicesModal from "./components/DevicesModal";
 
 interface File {
 	name: string;
@@ -28,6 +34,14 @@ function App() {
 	const [fileData, setFileData] = useState<File[]>([]);
 	const [showModal, setShowModal] = useState<boolean>(false);
 	const [selectedFile, setSelectedFile] = useState<File>();
+	const [showOutputDevices, setShowOutputDevices] = useState<boolean>(false);
+	const [showInputDevices, setShowInputDevices] = useState<boolean>(false);
+	const [activeInputDevice, setActiveInputDevice] = useState<string>("");
+	const [activeOutputDevice, setActiveOutputDevice] = useState<string>("");
+	const [audioDevices, setAudioDevices] = useState<[string[], string[]]>([
+		[""],
+		[""],
+	]);
 	const [newSetting, setNewSetting] = useState<Setting>({
 		filename: "",
 		letter: "?",
@@ -36,6 +50,7 @@ function App() {
 	});
 
 	async function getSoundFiles() {
+		console.info("Getting sound files");
 		if (!(await soundFolderExists())) {
 			console.log("ERROR: Sound folder does not exist!");
 			return;
@@ -44,13 +59,13 @@ function App() {
 			dir: BaseDirectory.Desktop,
 			recursive: true,
 		});
-		console.log("ENTRIES");
-		console.log(entries);
 
 		// Remove files that no longer exist
 		setFileData((prev) =>
 			prev.filter((file) => entries.some((entry) => entry.name === file.name))
 		);
+
+		const audioSettings: Setting[] = await invoke("load_settings");
 
 		for (const entry of entries) {
 			const fileDupeIndex = fileData.findIndex(
@@ -62,9 +77,8 @@ function App() {
 				entry.name?.includes(".mp3" || ".wav" || ".vorbis" || ".flac")
 			) {
 				const entryDuration = await getSoundDuration(entry.path);
-				const settings: Setting[] = await invoke("load_settings");
 
-				const matchingSetting = settings.find(
+				const matchingSetting = audioSettings.find(
 					(sett) => sett.filename === entry.name
 				);
 
@@ -88,11 +102,12 @@ function App() {
 	}
 
 	async function loadSettings() {
-		const settings: Setting[] = await invoke("load_settings");
+		console.info("Loading settings");
+		const audioSettings: Setting[] = await invoke("load_settings");
 
 		const updatedFileData: File[] = fileData.map((file) => {
-			const matchingSetting = settings.find(
-				(sett) => sett.filename === file.name
+			const matchingSetting = audioSettings.find(
+				(s) => s.filename === file.name
 			);
 
 			if (matchingSetting) {
@@ -108,12 +123,23 @@ function App() {
 		setFileData(updatedFileData);
 	}
 
+	async function loadAudioDevices() {
+		console.info("Loading audio devices");
+		const audioDevices: [string[], string[]] = await invoke(
+			"load_audio_devices"
+		);
+
+		setAudioDevices(audioDevices);
+	}
+
 	useEffect(() => {
 		getSoundFiles();
 		loadSettings();
+		loadAudioDevices();
 	}, []);
 
 	async function playSound(file: File) {
+		console.info("Playing sound");
 		await invoke("play_sound", {
 			file_path: file.path,
 			user_volume: file.userVolume,
@@ -122,6 +148,7 @@ function App() {
 	}
 
 	useEffect(() => {
+		console.info("Selected file changed");
 		if (selectedFile) {
 			setNewSetting({
 				filename: selectedFile.name,
@@ -133,6 +160,7 @@ function App() {
 	}, [selectedFile]);
 
 	async function getSoundDuration(filePath: string) {
+		console.info("Getting sound duration");
 		let soundDuration: number = await invoke("get_sound_duration", {
 			file_path: filePath,
 		});
@@ -140,6 +168,7 @@ function App() {
 	}
 
 	async function soundFolderExists() {
+		console.info("Checking if sound folder exists");
 		const soundFolderExists: boolean = await exists("Noise Platform Sounds", {
 			dir: BaseDirectory.Desktop,
 		});
@@ -147,6 +176,7 @@ function App() {
 	}
 
 	async function openSoundsFolder() {
+		console.info("Opening sounds folder");
 		try {
 			if (await soundFolderExists()) {
 				await invoke("open_sounds_folder");
@@ -177,6 +207,7 @@ function App() {
 	}
 
 	async function handleSaveSetting() {
+		console.info("Saving setting");
 		await invoke("save_setting", {
 			file_name: selectedFile?.name,
 			keybind: newSetting.letter,
@@ -208,30 +239,81 @@ function App() {
 		});
 	}
 
+	async function saveAudioDevices(inputDevice: string, outputDevice: string) {
+		console.info("Saving audio devices");
+		const audioDevices = await invoke("save_audio_devices", {
+			input_device: inputDevice,
+			output_device: outputDevice,
+		});
+		console.log(audioDevices);
+	}
+
 	return (
 		<div className="container">
-			<div className="button-container">
-				<div className="button-container-inner">
-					<form
-						className="row"
-						onSubmit={(e) => {
-							e.preventDefault();
-							openSoundsFolder();
+			<nav className="navbar">
+				<div className="navbar-inner">
+					<DevicesModal
+						deviceType="input"
+						devices={audioDevices[0]}
+						show={showInputDevices}
+						onDeviceChange={(device: string) => {
+							setActiveInputDevice(device);
+							saveAudioDevices(device, activeOutputDevice);
 						}}
-					>
-						<button type="submit">Open Sounds Folder</button>
-					</form>
-					<form
-						className="row"
-						onSubmit={(e) => {
-							e.preventDefault();
-							getSoundFiles();
+					/>
+					<div className="navbar-item">
+						<span
+							onClick={() => {
+								setShowInputDevices(!showInputDevices);
+							}}
+						>
+							<AiOutlineAudio />
+						</span>
+					</div>
+					<DevicesModal
+						deviceType="output"
+						devices={audioDevices[1]}
+						show={showOutputDevices}
+						onDeviceChange={(device: string) => {
+							setActiveOutputDevice(device);
+							saveAudioDevices(activeInputDevice, device);
 						}}
-					>
-						<button type="submit">Refresh</button>
-					</form>
+					/>
+					<div className="navbar-item">
+						<span
+							onClick={() => {
+								setShowOutputDevices(!showOutputDevices);
+							}}
+						>
+							<FiHeadphones />
+						</span>
+					</div>
+					<span />
+					{/* Included just so we have equal spacing */}
+					<div className="navbar-item">
+						<span
+							onClick={(e) => {
+								e.preventDefault();
+								openSoundsFolder();
+							}}
+						>
+							<FaRegFolderOpen />
+						</span>
+					</div>
+					<span />
+					{/* Included just so we have equal spacing */}
+					<div className="navbar-item">
+						<span
+							onClick={(e) => {
+								e.preventDefault();
+								getSoundFiles();
+							}}
+						>
+							<IoRefresh />
+						</span>
+					</div>
 				</div>
-			</div>
+			</nav>
 
 			<div className="table-container">
 				<table className="sound-table">

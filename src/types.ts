@@ -1,5 +1,5 @@
 interface File {
-	name: string;
+	filename: string;
 	path: string;
 	duration: number;
 	keybind: string;
@@ -9,5 +9,12 @@ interface File {
 interface Setting {
 	filename: string;
 	letter: string;
-	volume: number;
+	userVolume: number;
+	listenerVolume: number;
+}
+
+interface SettingsFile {
+	inputDevice: string;
+	outputDevice: string;
+	audioSettings: Setting[];
 }

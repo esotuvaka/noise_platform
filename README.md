@@ -30,6 +30,10 @@ Frontend
 - `Typescript` for rough type-matching to Rust equivalents
 - `Tailwind CSS` for styling because its convenient
 
+## Observations
+
+!!! Observed: The input and output devices can be derived from the settings file. Use this in the state to reduce redundant calls to backend
+
 ## Complete
 
 - Button to open "Noises" folder
@@ -46,6 +50,9 @@ Frontend
 
 ## Ongoing
 
+- Need to refactor for better variable naming
+- ! Large refactor to use tauri `State` to keep track of the settings file. This will include the input/output audio devices, as well as sound files, keybinds, volumes, etc
+- Pass errors returned in the backend to the frontend and display them as little popups in the corner
 - ! BUG: Sounds can be attempted to be played via keybind even if not available in the noise platform sounds folder
 - ! Ability to manually configure audio input and output devices
 - ? Echo setting
