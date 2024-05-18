@@ -67,11 +67,10 @@ pub async fn save_setting(
         });
     }
 
-    let settings_file_path = files::get_sounds_folder()?;
-    let settings_file = settings_file_path.join("settings.json");
+    let settings_file = files::get_sounds_folder()?.join("settings.json");
 
-    let settings_string = serde_json::to_string_pretty(&settings_file)?;
-    fs::write(settings_file_path, settings_string)?;
+    let settings_string = serde_json::to_string_pretty(&*settings_state)?;
+    fs::write(settings_file, settings_string)?;
 
     Ok(())
 }
