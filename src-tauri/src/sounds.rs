@@ -1,4 +1,4 @@
-use crate::errors::CustomError;
+use crate::{errors::CustomError, SettingsState};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use lofty::{AudioFile, Probe};
 use ringbuf::HeapRb;
@@ -9,10 +9,10 @@ use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
-use tauri::api::path::desktop_dir;
+use tauri::{api::path::desktop_dir, State};
 
 #[tauri::command(rename_all = "snake_case")]
-pub fn get_sound_duration(file_path: String) -> Result<u64, CustomError> {
+pub async fn get_sound_duration(file_path: String) -> Result<u64, CustomError> {
     let desktop: PathBuf = desktop_dir().ok_or(CustomError::Error(
         "Unable to find desktop directory".to_string(),
     ))?;
@@ -39,29 +39,30 @@ fn err_fn(err: cpal::StreamError) {
     eprintln!("an error occurred on stream: {}", err);
 }
 
-#[tauri::command(rename_all = "snake_case")]
-pub fn play_sound(file_path: String, user_volume: f32, listener_volume: f32) {
+pub fn make_some_noise(
+    file_path: String,
+    user_volume: f32,
+    listener_volume: f32,
+    in_device: String,
+    out_device: String,
+) {
     std::thread::spawn(move || {
+        println!("Playing sound: {}", file_path);
+
         // Open the audio file
-        dbg!(file_path.clone());
         let file = File::open(&file_path).unwrap();
         let host = cpal::default_host();
 
         let input_device = host
             .input_devices()
             .unwrap()
-            .find(|device| device.name().unwrap_or("".to_owned()).contains("Audio"))
+            .find(|device| device.name().unwrap_or("".to_owned()).contains(&out_device))
             .expect("Failed to find audio input device");
 
         let output_device = host
             .output_devices()
             .unwrap()
-            .find(|device| {
-                device
-                    .name()
-                    .unwrap_or("".to_owned())
-                    .contains("Microphone")
-            })
+            .find(|device| device.name().unwrap_or("".to_owned()).contains(&in_device))
             .expect("Failed to find audio output device");
 
         let config: cpal::StreamConfig = input_device.default_input_config().unwrap().into();
@@ -148,4 +149,23 @@ pub fn play_sound(file_path: String, user_volume: f32, listener_volume: f32) {
 
         sink.sleep_until_end();
     });
+}
+
+#[tauri::command(rename_all = "snake_case")]
+pub fn play_sound(
+    file_path: String,
+    user_volume: f32,
+    listener_volume: f32,
+    state: State<'_, SettingsState>,
+) {
+    let input_device = state.settings_state.lock().unwrap().input_device.clone();
+    let output_device = state.settings_state.lock().unwrap().output_device.clone();
+
+    make_some_noise(
+        file_path,
+        user_volume,
+        listener_volume,
+        input_device,
+        output_device,
+    );
 }

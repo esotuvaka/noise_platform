@@ -1,8 +1,12 @@
 :root {
 	font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-	font-size: 16px;
+	font-size: 14px;
 	line-height: 24px;
 	font-weight: 400;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
 
 	color: #0f0f0f;
 	background-color: #f6f6f6;
@@ -46,13 +50,6 @@ body {
 	margin-bottom: 2rem;
 }
 
-.button-container {
-	display: flex;
-	justify-content: center;
-	gap: 2rem;
-	margin-bottom: 2rem;
-}
-
 .table-header {
 	padding-right: 1rem;
 	text-align: start;
@@ -67,6 +64,9 @@ body {
 	justify-content: center;
 }
 
+.device-table-container {
+	grid-column: span 2;
+}
 .sound-table {
 	width: fit-content;
 	border-radius: 0.5rem;
@@ -82,26 +82,28 @@ body {
 
 .container {
 	margin: 0;
-	padding-top: 10vh;
-	padding-bottom: 10vh;
 	display: flex;
+	height: 100vh;
+	width: 100vw;
 	flex-direction: column;
 	justify-content: center;
 	text-align: center;
 }
 
-.button-container-inner {
+.button-container {
 	display: flex;
-	border-radius: 0.5rem;
 	justify-content: center;
 	gap: 2rem;
-	background-color: #2f2f2f;
-	padding: 1rem;
+	margin-bottom: 2rem;
 }
 
-body {
-	height: 100vh;
-	width: 100vw;
+.button-container-inner {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	border-radius: 0.5rem;
+	justify-content: center;
+	background-color: #2f2f2f;
+	padding: 1rem;
 }
 
 input,
@@ -115,6 +117,51 @@ button {
 	background-color: #ffffff;
 	transition: border-color 0.25s;
 	box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+}
+
+.hide {
+	opacity: 0;
+	visibility: hidden;
+	width: 0%;
+}
+
+.show {
+	transition: all 0.3s ease-in-out;
+	opacity: 1;
+	visibility: visible;
+	width: min-content;
+}
+
+.navbar {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 1.5rem;
+	z-index: 1;
+	width: 100%;
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
+.navbar-inner {
+	display: flex;
+	justify-content: end;
+	gap: 0.5rem;
+	margin-right: 1rem;
+	align-items: center;
+	width: 100%;
+}
+
+.navbar-item {
+	display: flex;
+	align-items: center;
+	font-size: 20px;
+}
+
+.navbar-item:hover {
+	cursor: pointer;
+	color: var(--border-color);
 }
 
 button {
