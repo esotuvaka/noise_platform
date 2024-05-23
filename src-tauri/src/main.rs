@@ -6,16 +6,14 @@ mod files;
 mod settings;
 mod sounds;
 
+use std::collections::HashMap;
 use std::sync::Mutex;
-use std::{collections::HashMap, path::PathBuf};
-
-use rdev::{listen, Event, EventType, Key};
-use serde::{Deserialize, Serialize};
-use tauri::api::path::desktop_dir;
 
 use crate::settings::Setting;
+use rdev::{listen, Event, EventType, Key};
+use serde::{Deserialize, Serialize};
 
-use files::get_settings;
+use files::{get_settings, get_sounds_folder};
 
 pub struct SettingsState {
     settings_state: Mutex<settings::SettingsFile>,
@@ -23,7 +21,8 @@ pub struct SettingsState {
 
 impl Default for SettingsState {
     fn default() -> Self {
-        let settings_file  = get_settings().expect("Failed to load settings. Perhaps there is no settings.json file in the Noise Platform Sounds folder on the desktop?");
+        let settings_file  = get_settings()
+            .expect("Failed to load settings. Perhaps there is no settings.json file in the Noise Platform Sounds folder on the desktop?");
         let input_device = settings_file.input_device;
         let output_device = settings_file.output_device;
         let audio_settings = settings_file.audio_settings;
@@ -108,17 +107,19 @@ impl KeyState {
                     self.other_key_pressed = true;
 
                     if let Some(setting) = key_map.get(&key) {
-                        let desktop = desktop_dir().unwrap();
-                        let sound_file_path = PathBuf::from(&desktop)
-                            .join("Noise Platform Sounds")
-                            .join(&setting.filename);
+                        let sound_file_path = get_sounds_folder().unwrap().join(&setting.filename);
+
+                        let settings_file  = get_settings()
+                            .expect("Failed to load settings. Perhaps there is no settings.json file in the Noise Platform Sounds folder on the desktop?");
 
                         if let Some(file_path) = sound_file_path.to_str() {
-                            dbg!("Playing sound!");
-                            sounds::play_sound(
+                            println!("Playing sound!");
+                            sounds::make_some_noise(
                                 file_path.to_string(),
                                 setting.user_volume,
                                 setting.listener_volume,
+                                settings_file.input_device,
+                                settings_file.output_device,
                             );
                         }
                     }
