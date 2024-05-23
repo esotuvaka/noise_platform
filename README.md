@@ -61,9 +61,3 @@ Frontend
 - ? Customizable color theme settings
 - ? Compilation to Linux Distros via WSL
 - ? Create util function to grab the desktop dir and settings.json file
-- Check sounds folder after the prompt window closes to refresh all mp3s in the app
-
-## Disclaimer
-
-**I'm not responsible for any injury or hearing loss caused by this app!**
-_There are volume settings for the sounds that you load, but user discretion is required to prevent playing sounds too loudly for yourself or other listeners._
