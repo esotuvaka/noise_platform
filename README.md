@@ -47,17 +47,22 @@ Frontend
 - Keyboard listener thats active while the app is open, that plays sound when keybind pressed
 - ! Add setting for tracking user vs listener volume. Update structs / interfaces, frontend state, and backend object construction accordingly.
 - ! Refactor `string_to_key` to create a hashmap of the existing keybinds based on the keybinds in the settings. This will prevent unnecessary processing from occurring on key press
+- ! Ability to manually configure audio input and output devices
+- ? Create util function to grab the desktop dir and settings.json file
 
 ## Ongoing
 
+- Icons for the desktop app
+- Downloadable desktop app
+- ! Tests
+- Categorization of sounds into different boards. We can use a tagging system so a sound can appear in multiple boards
+- Input validation for keybinds to ensure we're able to match against them via Key<letter, num, etc>
 - Need to refactor for better variable naming
 - ! Large refactor to use tauri `State` to keep track of the settings file. This will include the input/output audio devices, as well as sound files, keybinds, volumes, etc
 - Pass errors returned in the backend to the frontend and display them as little popups in the corner
 - ! BUG: Sounds can be attempted to be played via keybind even if not available in the noise platform sounds folder
-- ! Ability to manually configure audio input and output devices
 - ? Echo setting
 - ? Distortion setting
 - Add the ListenError (rdev crate) to our CustomError type
 - ? Customizable color theme settings
 - ? Compilation to Linux Distros via WSL
-- ? Create util function to grab the desktop dir and settings.json file

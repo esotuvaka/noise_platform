@@ -8,7 +8,7 @@ use crate::errors::CustomError;
 use crate::{files, SettingsState};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Setting {
+pub struct KeybindSetting {
     pub filename: String,
     pub letter: String,
     #[serde(rename = "userVolume")]
@@ -22,11 +22,13 @@ pub struct Setting {
 pub struct SettingsFile {
     pub input_device: String,
     pub output_device: String,
-    pub audio_settings: Vec<Setting>,
+    pub audio_settings: Vec<KeybindSetting>,
 }
 
 #[tauri::command(rename_all = "snake_case")]
-pub async fn load_settings(state: State<'_, SettingsState>) -> Result<Vec<Setting>, CustomError> {
+pub async fn load_settings(
+    state: State<'_, SettingsState>,
+) -> Result<Vec<KeybindSetting>, CustomError> {
     println!("Loading settings");
 
     let settings_state = state.settings_state.lock().unwrap();
@@ -50,14 +52,14 @@ pub async fn save_setting(
 
     if let Some(existing_setting) = audio_settings
         .iter_mut()
-        .find(|setting: &&mut Setting| setting.filename == file_name)
+        .find(|setting: &&mut KeybindSetting| setting.filename == file_name)
     {
         existing_setting.letter = keybind.to_lowercase().to_owned();
         existing_setting.user_volume = user_volume;
         existing_setting.listener_volume = listener_volume;
         dbg!(existing_setting);
     } else {
-        audio_settings.push(Setting {
+        audio_settings.push(KeybindSetting {
             filename: file_name.to_owned(),
             letter: keybind.to_lowercase().to_owned(),
             user_volume,
