@@ -1,48 +1,69 @@
-use lofty::LoftyError;
-use std::{fmt, io};
-use tauri::Error as TauriError;
-use tauri::InvokeError;
+use serde::Serialize;
+use std::fmt::Display;
+use thiserror::Error;
 
-#[derive(Debug)]
-pub enum CustomError {
-    Error(String),
+#[derive(Debug, Serialize, Error)]
+pub struct SerializableDevicesError(String);
+#[derive(Debug, Serialize, Error)]
+pub struct SerializableDeviceNamesError(String);
+
+impl Display for SerializableDevicesError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }
-impl fmt::Display for CustomError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            CustomError::Error(msg) => write!(f, "Error: {}", msg),
-        }
+impl Display for SerializableDeviceNamesError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+impl From<cpal::DevicesError> for SerializableDevicesError {
+    fn from(error: cpal::DevicesError) -> Self {
+        SerializableDevicesError(error.to_string())
+    }
+}
+impl From<cpal::DeviceNameError> for SerializableDeviceNamesError {
+    fn from(error: cpal::DeviceNameError) -> Self {
+        SerializableDeviceNamesError(error.to_string())
     }
 }
 
-// Convert errors to CustomError type for easier handling via ? operator
-impl From<io::Error> for CustomError {
-    fn from(error: io::Error) -> Self {
-        CustomError::Error(error.to_string())
-    }
+#[derive(Debug, Error, Serialize)]
+pub enum SettingsError {
+    #[error("Failed to lock settings state mutex")]
+    LockSettingsState,
+    #[error("Failed to find sounds folder")]
+    LoadSoundsFolder,
+    #[error("Failed to serialize settings state")]
+    SerializeSettings,
+    #[error("Failed to write settings file")]
+    WriteSettings,
+    #[error("Failed to load audio devices")]
+    LoadAudioDevices(#[from] SerializableDevicesError),
+    #[error("Failed to get audio device names")]
+    GetDeviceNames(#[from] SerializableDeviceNamesError),
 }
-impl From<serde_json::Error> for CustomError {
-    fn from(error: serde_json::Error) -> Self {
-        CustomError::Error(error.to_string())
-    }
+
+#[derive(Debug, Error, Serialize)]
+pub enum SoundsError {
+    #[error("Failed to get sounds folder path")]
+    GetSoundsFolder,
+    #[error("Failed to load sound file")]
+    LoadSoundFile,
+    #[error("Failed to open sound file path")]
+    OpenSoundFilePath,
 }
-impl From<TauriError> for CustomError {
-    fn from(error: TauriError) -> Self {
-        CustomError::Error(error.to_string())
-    }
-}
-impl From<CustomError> for InvokeError {
-    fn from(error: CustomError) -> Self {
-        InvokeError::from(error.to_string())
-    }
-}
-impl From<tauri::api::Error> for CustomError {
-    fn from(error: tauri::api::Error) -> Self {
-        CustomError::Error(error.to_string())
-    }
-}
-impl From<LoftyError> for CustomError {
-    fn from(error: LoftyError) -> Self {
-        CustomError::Error(error.to_string())
-    }
+
+#[derive(Debug, Error, Serialize)]
+pub enum FilesError {
+    #[error("Failed to create sounds folder")]
+    CreateSoundsFolder,
+    #[error("Failed to create settings file")]
+    CreateSettingsFile,
+    #[error("Failed to deserialize settings file")]
+    DeserializeSettingsFile,
+    #[error("Failed to read settings file")]
+    ReadSettingsFile,
+    #[error("Failed to get desktop directory")]
+    DesktopDir,
 }

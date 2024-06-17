@@ -5,7 +5,7 @@ use std::sync::Arc;
 use tauri::AppHandle;
 use tauri::Manager;
 
-use crate::files::get_sounds_folder;
+use crate::files::get_sounds_folder_path;
 use crate::sounds;
 use crate::SettingsState;
 
@@ -46,20 +46,19 @@ impl KeybindListener {
                         if let Some(second_key) = keyboard.add(&EventType::KeyPress(key)) {
                             dbg!(second_key.clone());
 
-                            // Load the settings file from app state
+                            // Load the settings from app state
                             let app_state = app_handle.state::<SettingsState>();
-
                             let mutex_settings = app_state.settings_state.lock().unwrap();
                             let settings = &mutex_settings.audio_settings;
 
                             match settings.iter().find(|setting| setting.letter == second_key) {
                                 Some(setting) => {
-                                    let sound_file_path = get_sounds_folder()
+                                    let sound_file_path = get_sounds_folder_path()
                                         .unwrap()
                                         .join(&setting.filename)
-                                        .to_str()
-                                        .unwrap()
-                                        .to_string();
+                                        .into_os_string()
+                                        .into_string()
+                                        .unwrap();
 
                                     sounds::make_some_noise(
                                         sound_file_path,
@@ -68,9 +67,10 @@ impl KeybindListener {
                                         mutex_settings.input_device.clone(),
                                         mutex_settings.output_device.clone(),
                                     )
+                                    .expect("Failed to play sound")
                                 }
                                 None => {
-                                    dbg!("No sound found for key {:?}", second_key);
+                                    dbg!("No sound found for key {:?}", second_key.clone());
                                 }
                             }
                         }
@@ -90,16 +90,16 @@ impl KeybindListener {
 }
 
 pub fn run_listener(app_handle: AppHandle) {
-    // TODO: Make this configurable
+    // TODO: Make this customizable by user
     const FIRST_KEY: Key = Key::Alt;
 
     let listener = Rc::new(RefCell::new(KeybindListener::new(FIRST_KEY)));
-    let app_handle = Arc::new(app_handle); // Wrap the app_handle in an Arc
+    let app_handle = Arc::new(app_handle);
 
     if let Err(error) = listen(move |event| {
         let mut listener = listener.borrow_mut();
-        let app_handle = Arc::clone(&app_handle); // Clone the Arc for use in the closure
-        listener.handle_event(app_handle, event); // Adjust the handle_event method to take an Arc<AppHandle>
+        let app_handle = Arc::clone(&app_handle);
+        listener.handle_event(app_handle, event);
     }) {
         dbg!("Error: {:?}", error);
     }

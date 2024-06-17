@@ -1,38 +1,28 @@
-use crate::{errors::CustomError, SettingsState};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use lofty::{AudioFile, Probe};
 use ringbuf::HeapRb;
 use rodio::{Decoder, OutputStream, Sink};
-use std::{
-    fs::File,
-    io::BufReader,
-    path::{Path, PathBuf},
-    time::Duration,
-};
-use tauri::{api::path::desktop_dir, State};
+use std::{fs::File, io::BufReader};
+use tauri::State;
+
+use crate::errors::SoundsError;
+use crate::{files::get_sounds_folder_path, SettingsState};
 
 #[tauri::command(rename_all = "snake_case")]
-pub async fn get_sound_duration(file_path: String) -> Result<u64, CustomError> {
-    let desktop: PathBuf = desktop_dir().ok_or(CustomError::Error(
-        "Unable to find desktop directory".to_string(),
-    ))?;
-
-    let sound_file_path = Path::new(&desktop)
-        .join("Noise Platform Sounds")
+pub async fn get_sound_duration(file_path: String) -> Result<u64, SoundsError> {
+    let sound_file_path = get_sounds_folder_path()
+        .map_err(|_| SoundsError::GetSoundsFolder)?
         .join(file_path);
-
     if !sound_file_path.is_file() {
-        return Err(CustomError::Error("File does not exist!".to_string()));
+        return Err(SoundsError::LoadSoundFile);
     }
 
     let tagged_file = Probe::open(&sound_file_path)
-        .map_err(|e| CustomError::Error(e.to_string()))?
+        .map_err(|_| SoundsError::OpenSoundFilePath)?
         .read()
-        .map_err(|e| CustomError::Error(e.to_string()))?;
+        .map_err(|_| SoundsError::LoadSoundFile)?;
 
-    let sound_duration: Duration = tagged_file.properties().duration();
-
-    Ok(sound_duration.as_secs())
+    Ok(tagged_file.properties().duration().as_secs())
 }
 
 pub fn make_some_noise(
@@ -41,12 +31,12 @@ pub fn make_some_noise(
     listener_volume: f32,
     in_device: String,
     out_device: String,
-) {
+) -> Result<(), SoundsError> {
     std::thread::spawn(move || {
         dbg!(path_to_sound.clone());
 
         // Open the audio file
-        let file = File::open(&path_to_sound).unwrap();
+        let file = File::open(&path_to_sound).map_err(|_| SoundsError::LoadSoundFile)?;
         let host = cpal::default_host();
 
         let input_device = host
@@ -150,7 +140,11 @@ pub fn make_some_noise(
         output_stream.play().unwrap();
 
         sink.sleep_until_end();
+
+        Ok::<(), SoundsError>(())
     });
+
+    Ok(())
 }
 
 #[tauri::command(rename_all = "snake_case")]
@@ -172,5 +166,6 @@ pub fn play_sound(
         listener_volume,
         input_device,
         output_device,
-    );
+    )
+    .expect("Failed to play sound")
 }
