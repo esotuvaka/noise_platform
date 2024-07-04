@@ -1,19 +1,20 @@
-interface File {
+export interface File {
 	filename: string;
 	path: string;
 	duration: number;
 	keybind: string;
-	volume: number;
+	userVolume: number;
+	listenerVolume: number;
 }
 
-interface Setting {
+export interface Setting {
 	filename: string;
 	letter: string;
 	userVolume: number;
 	listenerVolume: number;
 }
 
-interface SettingsFile {
+export interface SettingsFile {
 	inputDevice: string;
 	outputDevice: string;
 	audioSettings: Setting[];

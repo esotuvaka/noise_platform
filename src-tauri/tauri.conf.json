@@ -14,28 +14,35 @@
 			"all": false,
 			"shell": {
 				"all": false,
-				"open": true
+				"open": ".*"
 			},
 			"dialog": {
-				"all": true,
+				"all": false,
 				"ask": false,
 				"confirm": false,
 				"message": false,
 				"open": true,
 				"save": true
 			},
+			"path": {
+				"all": true
+			},
 			"fs": {
-				"all": true,
+				"all": false,
 				"copyFile": false,
 				"createDir": true,
 				"exists": true,
 				"readDir": true,
-				"readFile": false,
+				"readFile": true,
 				"removeDir": false,
 				"removeFile": false,
 				"renameFile": false,
-				"scope": ["*/**"],
-				"writeFile": false
+				"scope": ["$APP/*", "$DESKTOP/*"],
+				"writeFile": true
+			},
+			"window": {
+				"all": false,
+				"setSize": true
 			}
 		},
 		"bundle": {

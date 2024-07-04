@@ -7,14 +7,21 @@ interface OutputDevicesModal {
 
 function DevicesModal({ devices, show, onDeviceChange }: OutputDevicesModal) {
 	return (
-		<div className={`devices-modal ${show ? "show" : "hide"}`}>
-			<div>
-				<select onChange={(e) => onDeviceChange(e.target.value)}>
-					{devices.map((device, index) => {
-						return <option key={index}>{device}</option>;
-					})}
-				</select>
-			</div>
+		<div className="h-8">
+			{show === true ? (
+				<div className="flex items-center">
+					<select
+						className="bg-black text-white px-1 py-0.5 mt-0.5"
+						onChange={(e) => onDeviceChange(e.target.value)}
+					>
+						{devices.map((device, index) => {
+							return <option key={index}>{device}</option>;
+						})}
+					</select>
+				</div>
+			) : (
+				<></>
+			)}
 		</div>
 	);
 }
