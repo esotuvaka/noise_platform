@@ -1,6 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use files::get_sounds_folder_path;
 use std::sync::Mutex;
 
 mod errors;
@@ -16,8 +17,13 @@ pub struct SettingsState {
 
 impl Default for SettingsState {
     fn default() -> Self {
-        let settings_file  = files::get_settings()
-            .expect("Failed to load settings. Perhaps there is no settings.json file in the Noise Platform Sounds folder on the desktop?");
+        let should_create_sounds_folder = get_sounds_folder_path().is_err();
+        if should_create_sounds_folder {
+            files::create_sounds_folder().expect("Failed to create sounds folder");
+            files::create_settings_file().expect("Failed to create settings file");
+        }
+
+        let settings_file = files::get_settings().expect("Unable to load settings file");
 
         let input_device = settings_file.input_device;
         let output_device = settings_file.output_device;
