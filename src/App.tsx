@@ -5,7 +5,6 @@ import { invoke } from "@tauri-apps/api/tauri";
 import Navbar from "./components/Navbar";
 import NoiseTable from "./components/NoiseTable";
 import { File } from "./types";
-import NoiseSettingsModal from "./components/NoiseSettingsModal";
 
 interface Setting {
 	filename: string;
@@ -16,18 +15,10 @@ interface Setting {
 
 function App() {
 	const [fileData, setFileData] = useState<File[]>([]);
-	const [showModal, setShowModal] = useState<boolean>(false);
-	const [selectedFile, setSelectedFile] = useState<File>();
 	const [audioDevices, setAudioDevices] = useState<[string[], string[]]>([
 		[""],
 		[""],
 	]);
-	const [newSetting, setNewSetting] = useState<Setting>({
-		filename: "",
-		letter: "?",
-		userVolume: 1,
-		listenerVolume: 1,
-	});
 
 	async function soundFolderExists() {
 		console.info("Checking if sound folder exists");
@@ -91,10 +82,6 @@ function App() {
 		}
 	}
 
-	async function handleRefresh() {
-		getSoundFiles();
-	}
-
 	async function loadSettings() {
 		console.info("Loading settings");
 		const audioSettings: Setting[] = await invoke("load_settings");
@@ -132,18 +119,6 @@ function App() {
 		loadAudioDevices();
 	}, []);
 
-	useEffect(() => {
-		console.info("Selected file changed");
-		if (selectedFile) {
-			setNewSetting({
-				filename: selectedFile.filename,
-				letter: selectedFile.keybind,
-				userVolume: selectedFile.userVolume,
-				listenerVolume: selectedFile.listenerVolume,
-			});
-		}
-	}, [selectedFile]);
-
 	async function getSoundDuration(filePath: string) {
 		console.info("Getting sound duration");
 		let soundDuration: number = await invoke("get_sound_duration", {
@@ -156,12 +131,8 @@ function App() {
 		setFileData(fileData);
 	}
 
-	function handleSelectedFile(file: File | undefined) {
-		setSelectedFile(file);
-	}
-
-	function handleShowModal(show: boolean) {
-		setShowModal(show);
+	async function handleRefresh() {
+		getSoundFiles();
 	}
 
 	return (
@@ -178,16 +149,6 @@ function App() {
 			) : (
 				<section className="flex justify-center">
 					<NoiseTable fileData={fileData} handleFileData={handleFileData} />
-
-					{showModal && (
-						<NoiseSettingsModal
-							fileData={fileData}
-							selectedFile={selectedFile}
-							handleFileData={handleFileData}
-							handleSelectedFile={handleSelectedFile}
-							handleShowModal={handleShowModal}
-						/>
-					)}
 				</section>
 			)}
 		</div>
