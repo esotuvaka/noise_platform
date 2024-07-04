@@ -2,7 +2,7 @@
 
 Rather than purchasing a soundboard, this was created as a fun project to experiment with rust on the desktop. Its basic and not very idiomatic, but has been a blast to make and mess around with friends.
 
-![alt text](screenshots/noise_platform_0.1.png)
+![alt text](screenshots/noise_platform.png)
 
 ## Setup
 
