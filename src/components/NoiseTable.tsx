@@ -8,17 +8,7 @@ interface NoiseTable {
 }
 
 const NoiseTable = ({ fileData, handleFileData }: NoiseTable) => {
-	const defaultFile: File = {
-		filename: "",
-		path: "",
-		duration: 0,
-		keybind: "?",
-		userVolume: 1,
-		listenerVolume: 1,
-	};
-
-	const [newSetting, setNewSetting] = useState<File>(defaultFile);
-	const [activeRow, setActiveRow] = useState<number | null>(null);
+	const [settings, setSettings] = useState<File[]>(fileData);
 
 	async function playSound(file: File) {
 		await invoke("play_sound", {
@@ -29,21 +19,33 @@ const NoiseTable = ({ fileData, handleFileData }: NoiseTable) => {
 	}
 
 	async function handleSaveSetting(selectedFile: File) {
-		if (activeRow !== null) {
+		const matchingRow = settings.find((setting) => {
+			console.info("Matching setting", setting.filename, selectedFile.filename);
+			return setting.filename == selectedFile.filename;
+		});
+
+		if (matchingRow) {
+			console.info(
+				"Saving setting",
+				matchingRow.filename,
+				matchingRow.keybind.toUpperCase(),
+				matchingRow.userVolume,
+				matchingRow.listenerVolume
+			);
 			await invoke("save_setting", {
-				file_name: selectedFile?.filename,
-				keybind: newSetting.keybind,
-				user_volume: newSetting.userVolume,
-				listener_volume: newSetting.listenerVolume,
+				file_name: matchingRow.filename,
+				keybind: matchingRow.keybind.toUpperCase(),
+				user_volume: matchingRow.userVolume,
+				listener_volume: matchingRow.listenerVolume,
 			});
 
 			const updatedFiles: File[] = fileData.map((file) => {
 				if (file.filename == selectedFile!.filename) {
 					return {
 						...file,
-						keybind: newSetting.keybind.toUpperCase(), // uppercase for display, lowercase for logic to prevent shift key weirdness
-						userVolume: newSetting.userVolume,
-						listenerVolume: newSetting.listenerVolume,
+						keybind: matchingRow.keybind.toUpperCase(), // uppercase for display, lowercase for logic to prevent shift key weirdness
+						userVolume: matchingRow.userVolume,
+						listenerVolume: matchingRow.listenerVolume,
 					};
 				} else {
 					return file;
@@ -51,10 +53,7 @@ const NoiseTable = ({ fileData, handleFileData }: NoiseTable) => {
 			});
 
 			handleFileData(updatedFiles);
-			setNewSetting(defaultFile);
 		}
-
-		setActiveRow(null);
 	}
 
 	return (
@@ -94,13 +93,19 @@ const NoiseTable = ({ fileData, handleFileData }: NoiseTable) => {
 										id={`newKeybind-${i}`}
 										maxLength={1}
 										placeholder={file.keybind.toUpperCase() || "?"}
-										onFocus={() => setActiveRow(i)}
+										style={{ textTransform: "uppercase" }}
 										onChange={(e) => {
-											setActiveRow(i);
-											setNewSetting({
-												...newSetting,
-												keybind: e.target.value,
+											const nextSettings = settings.map((setting) => {
+												if (setting.filename === file.filename) {
+													return {
+														...setting,
+														keybind: e.target.value.toUpperCase(),
+													};
+												} else {
+													return setting;
+												}
 											});
+											setSettings(nextSettings);
 										}}
 									/>
 								</div>
@@ -114,14 +119,19 @@ const NoiseTable = ({ fileData, handleFileData }: NoiseTable) => {
 										min={0}
 										max={200}
 										placeholder={file?.userVolume.toString() || "1"}
-										onFocus={() => setActiveRow(i)}
 										onChange={(e) => {
-											setActiveRow(i);
 											const userVolume = parseInt(e.target.value);
-											setNewSetting({
-												...newSetting,
-												userVolume: userVolume,
+											const nextSettings = settings.map((setting) => {
+												if (setting.filename === file.filename) {
+													return {
+														...setting,
+														userVolume: userVolume,
+													};
+												} else {
+													return setting;
+												}
 											});
+											setSettings(nextSettings);
 										}}
 									/>
 									<label
@@ -141,14 +151,19 @@ const NoiseTable = ({ fileData, handleFileData }: NoiseTable) => {
 										min={0}
 										max={200}
 										placeholder={file?.listenerVolume.toString() || "1"}
-										onFocus={() => setActiveRow(i)}
 										onChange={(e) => {
-											setActiveRow(i);
 											const listenerVolume = parseInt(e.target.value, 10);
-											setNewSetting({
-												...newSetting,
-												listenerVolume: listenerVolume,
+											const nextSettings = settings.map((setting) => {
+												if (setting.filename === file.filename) {
+													return {
+														...setting,
+														listenerVolume: listenerVolume,
+													};
+												} else {
+													return setting;
+												}
 											});
+											setSettings(nextSettings);
 										}}
 									/>
 									<label
@@ -162,7 +177,7 @@ const NoiseTable = ({ fileData, handleFileData }: NoiseTable) => {
 							<td>
 								<button
 									className="px-3 py-1 text-sm bg-black border border-neutral-800 hover:border-white transition-all duration-150 hover:shadow-neutral-500 hover:shadow-sm"
-									onClick={() => handleSaveSetting(file)}
+									onClick={async () => await handleSaveSetting(file)}
 								>
 									Save
 								</button>

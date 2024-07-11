@@ -4,7 +4,7 @@ import { FiHeadphones } from "react-icons/fi";
 import { IoRefresh } from "react-icons/io5";
 import DevicesModal from "./DevicesModal";
 import { invoke } from "@tauri-apps/api/tauri";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Navbar {
 	audioDevices: [string[], string[]];
@@ -18,12 +18,15 @@ const Navbar = ({ audioDevices, handleRefresh }: Navbar) => {
 	const [showInputDevices, setShowInputDevices] = useState<boolean>(false);
 	const [showOutputDevices, setShowOutputDevices] = useState<boolean>(false);
 
-	async function saveAudioDevices(inputDevice: string, outputDevice: string) {
-		await invoke("save_audio_devices", {
-			input_device: inputDevice,
-			output_device: outputDevice,
-		});
-	}
+	useEffect(() => {
+		async function saveAudioDevices() {
+			await invoke("save_audio_devices", {
+				input_device: activeInputDevice,
+				output_device: activeOutputDevice,
+			});
+		}
+		saveAudioDevices();
+	}, [activeInputDevice, activeOutputDevice]);
 
 	async function openSoundsFolder() {
 		// The sounds folder should exist when we invoke this Rust API
@@ -40,7 +43,6 @@ const Navbar = ({ audioDevices, handleRefresh }: Navbar) => {
 					show={showInputDevices}
 					onDeviceChange={(device: string) => {
 						setActiveInputDevice(device);
-						saveAudioDevices(device, activeOutputDevice);
 					}}
 				/>
 				<div className="flex items-center text-neutral-200 text-xl hover:cursor-pointer hover:text-white transition-all duration-150">
@@ -59,7 +61,6 @@ const Navbar = ({ audioDevices, handleRefresh }: Navbar) => {
 					show={showOutputDevices}
 					onDeviceChange={(device: string) => {
 						setActiveOutputDevice(device);
-						saveAudioDevices(activeInputDevice, device);
 					}}
 				/>
 				<div className="flex items-center text-neutral-200 text-xl hover:cursor-pointer hover:text-white transition-all duration-150">

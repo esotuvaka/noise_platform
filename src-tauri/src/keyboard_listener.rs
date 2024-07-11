@@ -44,14 +44,14 @@ impl KeybindListener {
                         // Convert Key enum into a string so we can match against keys in our settings
                         let keyboard = &mut self.keyboard;
                         if let Some(second_key) = keyboard.add(&EventType::KeyPress(key)) {
-                            dbg!(second_key.clone());
-
                             // Load the settings from app state
                             let app_state = app_handle.state::<SettingsState>();
                             let mutex_settings = app_state.settings_state.lock().unwrap();
                             let settings = &mutex_settings.audio_settings;
 
-                            match settings.iter().find(|setting| setting.letter == second_key) {
+                            match settings.iter().find(|setting| {
+                                setting.letter.to_uppercase() == second_key.to_uppercase()
+                            }) {
                                 Some(setting) => {
                                     let sound_file_path = get_sounds_folder_path()
                                         .unwrap()

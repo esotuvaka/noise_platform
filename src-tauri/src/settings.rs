@@ -59,14 +59,14 @@ pub async fn save_setting(
         .iter_mut()
         .find(|setting: &&mut KeybindSetting| setting.filename == file_name)
     {
-        existing_setting.letter = keybind.to_lowercase().to_owned();
+        existing_setting.letter = keybind.to_owned();
         existing_setting.user_volume = user_volume;
         existing_setting.listener_volume = listener_volume;
         dbg!(existing_setting);
     } else {
         audio_settings.push(KeybindSetting {
             filename: file_name.to_owned(),
-            letter: keybind.to_lowercase().to_owned(),
+            letter: keybind.to_owned(),
             user_volume,
             listener_volume,
         });

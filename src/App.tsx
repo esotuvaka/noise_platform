@@ -132,6 +132,7 @@ function App() {
 	}
 
 	async function handleRefresh() {
+		console.info("Refreshing sound files");
 		getSoundFiles();
 	}
 

@@ -49,7 +49,12 @@ pub fn get_settings() -> Result<SettingsFile, FilesError> {
 pub fn create_sounds_folder() -> Result<(), FilesError> {
     let desktop = desktop_dir().ok_or(FilesError::DesktopDir)?;
     let sounds_folder_path = Path::new(&desktop).join("Noise Platform Sounds");
-    std::fs::create_dir(sounds_folder_path).map_err(|_| FilesError::CreateSoundsFolder)
+    if !sounds_folder_path.is_dir() {
+        let _ =
+            std::fs::create_dir(&sounds_folder_path).map_err(|_| FilesError::CreateSoundsFolder);
+    }
+
+    Ok(())
 }
 
 pub fn create_settings_file() -> Result<(), FilesError> {

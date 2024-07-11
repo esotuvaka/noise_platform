@@ -1,7 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use files::get_sounds_folder_path;
 use std::sync::Mutex;
 
 mod errors;
@@ -17,17 +16,23 @@ pub struct SettingsState {
 
 impl Default for SettingsState {
     fn default() -> Self {
-        let should_create_sounds_folder = get_sounds_folder_path().is_err();
-        if should_create_sounds_folder {
-            files::create_sounds_folder().expect("Failed to create sounds folder");
-            files::create_settings_file().expect("Failed to create settings file");
+        match files::get_settings() {
+            Ok(settings_file_path) => {
+                // The settings file exists, proceed to load it
+                println!("Settings file found at {:?}", settings_file_path);
+            }
+            Err(_) => {
+                // The settings file does not exist, create the folder and file
+                println!("Settings file not found, creating default settings file.");
+                files::create_sounds_folder().expect("Failed to create sounds folder");
+                files::create_settings_file().expect("Failed to create settings file");
+            }
         }
 
         let settings_file = files::get_settings().expect("Unable to load settings file");
 
         let input_device = settings_file.input_device;
         let output_device = settings_file.output_device;
-
         // TODO: Convert to HashMap for faster lookups
         let audio_settings = settings_file.audio_settings;
 

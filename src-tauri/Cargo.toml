@@ -14,7 +14,7 @@ tauri-build = { version = "1.5", features = [] }
 
 [dependencies]
 thiserror = "1.0"
-tauri = { version = "1.5", features = [ "window-set-size", "path-all", "dialog-save", "dialog-open", "fs-write-file", "fs-read-dir", "fs-create-dir", "fs-read-file", "fs-exists", "shell-open"] }
+tauri = { version = "1.5", features = [ "shell-open", "window-set-size", "path-all", "dialog-save", "dialog-open", "fs-write-file", "fs-read-dir", "fs-create-dir", "fs-read-file", "fs-exists" ] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 lofty = "0.18.2"
@@ -28,3 +28,10 @@ rdev = "=0.5.3"
 # this feature is used for production builds or when `devPath` points to the filesystem
 # DO NOT REMOVE!!
 custom-protocol = ["tauri/custom-protocol"]
+
+[profile.release]
+panic = "abort"     # Strip expensive panic clean-up logic
+codegen-units = 1   # Compile crates one after another so the compiler can optimize better
+lto = true          # Enables link to optimizations
+opt-level = "s"     # Optimize for binary size
+strip = true        # Remove debug symbols
