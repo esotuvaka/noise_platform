@@ -36,12 +36,16 @@ pub enum SettingsError {
     LoadSoundsFolder,
     #[error("Failed to serialize settings state")]
     SerializeSettings,
+    #[error("Failed to deserialize settings state")]
+    DeserializeSettings,
     #[error("Failed to write settings file")]
     WriteSettings,
     #[error("Failed to load audio devices")]
     LoadAudioDevices(#[from] SerializableDevicesError),
     #[error("Failed to get audio device names")]
     GetDeviceNames(#[from] SerializableDeviceNamesError),
+    #[error("Failed to read settings from settings.json file")]
+    ReadSettings,
 }
 
 #[derive(Debug, Error, Serialize)]

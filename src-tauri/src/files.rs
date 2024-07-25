@@ -17,6 +17,31 @@ pub async fn open_sounds_folder() -> Result<(), FilesError> {
     Ok(())
 }
 
+pub fn get_sound_files(sound_folder: std::path::PathBuf) -> Vec<String> {
+    let sound_files = fs::read_dir(sound_folder)
+        .unwrap()
+        .filter_map(|entry| {
+            let entry = entry.unwrap();
+            let path = entry.path();
+            if let Some(extension) = path.extension() {
+                if extension == "wav"
+                    || extension == "mp3"
+                    || extension == "flac"
+                    || extension == "vorbis"
+                {
+                    Some(entry.file_name().into_string().unwrap())
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    sound_files
+}
+
 pub fn get_sounds_folder_path() -> Result<PathBuf, FilesError> {
     if let Some(desktop) = desktop_dir() {
         let sounds_folder_path: PathBuf = Path::new(&desktop).join("Noise Platform Sounds");

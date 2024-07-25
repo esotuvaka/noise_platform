@@ -25,17 +25,39 @@ pub struct SettingsFile {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-pub async fn load_settings(
-    state: State<'_, SettingsState>,
-) -> Result<Vec<KeybindSetting>, SettingsError> {
-    // TODO: Consolidate keybinds and audio devices load + save functions
-
+pub async fn load_settings() -> Result<Vec<KeybindSetting>, SettingsError> {
     println!("Loading settings");
 
-    let settings_state = state
-        .settings_state
-        .lock()
-        .map_err(|_| SettingsError::LockSettingsState)?;
+    // TODO: Consolidate keybinds and audio devices load + save functions
+    // TODO: Make all calls to the functions load the settings from the file directly rather than state
+    let sound_folder =
+        files::get_sounds_folder_path().map_err(|_| SettingsError::LoadSoundsFolder)?;
+
+    let settings_file = sound_folder.join("settings.json");
+
+    let settings_string = fs::read_to_string(&settings_file).unwrap();
+    let mut settings_state: SettingsFile =
+        serde_json::from_str(&settings_string).map_err(|_| SettingsError::DeserializeSettings)?;
+
+    if settings_state.audio_settings.is_empty() {
+        println!("No settings found, loading sound files to create default settings");
+        let sound_files = files::get_sound_files(sound_folder);
+        let audio_settings: Vec<KeybindSetting> = sound_files
+            .iter()
+            .map(|filename| KeybindSetting {
+                filename: filename.clone(),
+                letter: "".to_owned(),
+                user_volume: 1.0,
+                listener_volume: 1.0,
+            })
+            .collect();
+
+        settings_state.audio_settings = audio_settings;
+
+        let settings_string = serde_json::to_string_pretty(&settings_state)
+            .map_err(|_| SettingsError::SerializeSettings)?;
+        fs::write(settings_file, settings_string).map_err(|_| SettingsError::WriteSettings)?;
+    }
 
     Ok(settings_state.audio_settings.clone())
 }
