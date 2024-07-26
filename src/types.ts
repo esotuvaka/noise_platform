@@ -9,7 +9,7 @@ export interface File {
 
 export interface Setting {
 	filename: string;
-	letter: string;
+	keybind: string;
 	userVolume: number;
 	listenerVolume: number;
 }
@@ -17,5 +17,5 @@ export interface Setting {
 export interface SettingsFile {
 	inputDevice: string;
 	outputDevice: string;
-	audioSettings: Setting[];
+	noiseSettings: Setting[];
 }

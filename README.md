@@ -19,10 +19,10 @@ Be sure to disable or lower AI audio filtering and background noise filtering as
 - [x] Icons for the desktop app
 - [x] Downloadable desktop app
 - [ ] Categorization of sounds into different boards. We can use a tagging system so a sound can appear in multiple boards
-- [ ] Need to refactor for better variable naming
+- [x] Need to refactor for better variable naming
 - [ ] Pass errors returned in the backend to the frontend and display them as little popups in the corner
 - [x] ! Large refactor to use tauri `State` to keep track of the settings file. This will include the input/output audio devices, as well as sound files, keybinds, volumes, etc
-- [ ] ! BUG: Sounds can be attempted to be played via keybind even if not available in the noise platform sounds folder
+- [x] ! BUG: Sounds can be attempted to be played via keybind even if not available in the noise platform sounds folder
 - [ ] ? Echo setting
 - [ ] ? Distortion setting
 - [ ] Customizable color theme settings
