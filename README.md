@@ -1,28 +1,44 @@
-# NOISE PLATFORM
+# Project Name
 
-Rather than purchasing a soundboard, this was created as a fun project to experiment with rust on the desktop. Its basic and not very idiomatic, but has been a blast to make and mess around with friends.
+Welcome to Noise Platform. This project aims to provide a seamless soundboard experience with various features and integrations.
 
-![alt text](screenshots/noise_platform.png)
+## Features
 
-## Setup
+- Custom keybinds
+- Customizable user volume
+- Customizable listener volume
+- Multiple soundboards via tagging (planned)
+- Echo settings (planned)
+- Distortion settings (planned)
+- Color theme customization (planned)
+- Remove need for virtual audio cable external dependency (long-term; planned)
 
-My current setup for running this app is Windows 10 OS, with SteelSeries' SonarGG Software for managing audio devices.
+## Releases
+
+- 0.1.0 (beta)
+
+## OS Stability
+
+- Windows 10
+- Linux (compiled; functionality unknown)
+- MacOS (unknown)
+
+## Requirements
+
+Currently requires a virtual audio device management software such as Virtual Audio Cable, SonarGG, Voicemeeter, etc. Long term plans include removing this need by creating a virtual audio device crate.
+
+## Usage
 
 Be sure to disable or lower AI audio filtering and background noise filtering as they'll make sounds come through unclearly. For example, use 'Standard' noise suppression on Discord:
 
-**In theory**, just about any audio device management software like Virtual Audio Cable, SonarGG, Voicemeeter, etc. should be usable with this app.
+![Discord Noise Suppression](screenshots/discord-noise-suppression.png)
 
-![alt text](screenshots/discord-noise-suppression.png)
+In theory, just about any audio device management software like Virtual Audio Cable, SonarGG, Voicemeeter, etc., should be usable with this app.
 
-## Ideas
+## Contributing
 
-- [x] Icons for the desktop app
-- [x] Downloadable desktop app
-- [ ] Categorization of sounds into different boards. We can use a tagging system so a sound can appear in multiple boards
-- [x] Need to refactor for better variable naming
-- [ ] Pass errors returned in the backend to the frontend and display them as little popups in the corner
-- [x] ! Large refactor to use tauri `State` to keep track of the settings file. This will include the input/output audio devices, as well as sound files, keybinds, volumes, etc
-- [x] ! BUG: Sounds can be attempted to be played via keybind even if not available in the noise platform sounds folder
-- [ ] ? Echo setting
-- [ ] ? Distortion setting
-- [ ] Customizable color theme settings
+Contributions are welcome. Please feel free to submit issues, fork the repository, and create pull requests.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
