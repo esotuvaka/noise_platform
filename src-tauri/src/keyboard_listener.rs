@@ -47,10 +47,10 @@ impl KeybindListener {
                             // Load the settings from app state
                             let app_state = app_handle.state::<SettingsState>();
                             let mutex_settings = app_state.settings_state.lock().unwrap();
-                            let settings = &mutex_settings.audio_settings;
+                            let settings = &mutex_settings.noise_settings;
 
                             match settings.iter().find(|setting| {
-                                setting.letter.to_uppercase() == second_key.to_uppercase()
+                                setting.keybind.to_uppercase() == second_key.to_uppercase()
                             }) {
                                 Some(setting) => {
                                     let sound_file_path = get_sounds_folder_path()

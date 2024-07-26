@@ -102,7 +102,7 @@ pub fn create_settings_file() -> Result<(), FilesError> {
     let default_settings = SettingsFile {
         input_device: default_input_device,
         output_device: default_output_device,
-        audio_settings: Vec::new(),
+        noise_settings: Vec::new(),
     };
 
     let settings_string =

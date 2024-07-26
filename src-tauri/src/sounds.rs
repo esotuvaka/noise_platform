@@ -5,16 +5,17 @@ use rodio::{Decoder, OutputStream, Sink};
 use std::{fs::File, io::BufReader};
 use tauri::State;
 
-use crate::errors::SoundsError;
+use crate::errors::{AppError, SoundsError};
+use crate::files;
 use crate::{files::get_sounds_folder_path, SettingsState};
 
 #[tauri::command(rename_all = "snake_case")]
-pub async fn get_sound_duration(file_path: String) -> Result<u64, SoundsError> {
-    let sound_file_path = get_sounds_folder_path()
-        .map_err(|_| SoundsError::GetSoundsFolder)?
-        .join(file_path);
+pub async fn get_sound_duration(filename: String) -> Result<u64, AppError> {
+    let sound_folder_path = get_sounds_folder_path()?;
+    let sound_file_path = sound_folder_path.join(filename);
+
     if !sound_file_path.is_file() {
-        return Err(SoundsError::LoadSoundFile);
+        return Err(SoundsError::LoadSoundFile.into());
     }
 
     let tagged_file = Probe::open(&sound_file_path)
@@ -78,7 +79,7 @@ pub fn make_some_noise(
         let (mut producer, mut consumer) = ring.split();
 
         for _ in 0..latency_samples {
-            // The ring buffer has twice as much space as necessary to add latency here,
+            // The ring buffer has 2x as much space as necessary to add latency here,
             // so this should never fail
             producer.push(0.0).unwrap();
         }
@@ -88,7 +89,9 @@ pub fn make_some_noise(
             let mut input_fell_behind = false;
             for sample in data {
                 *sample = match consumer.pop() {
-                    Some(s) => s * (0.1 / 100.0), // This ratio is the amount of echo (100% == full echo)
+                    // This ratio is the amount of echo (100% == full echo)
+                    // Caused by the ring buffer being 2x required size
+                    Some(s) => s * (0.1 / 100.0),
                     None => {
                         input_fell_behind = true;
                         0.0
@@ -149,7 +152,7 @@ pub fn make_some_noise(
 
 #[tauri::command(rename_all = "snake_case")]
 pub fn play_sound(
-    file_path: String,
+    filename: String,
     user_volume: f32,
     listener_volume: f32,
     state: State<'_, SettingsState>,
@@ -157,7 +160,13 @@ pub fn play_sound(
     let input_device = state.settings_state.lock().unwrap().input_device.clone();
     let output_device = state.settings_state.lock().unwrap().output_device.clone();
 
-    let path_to_sound = file_path;
+    let path_to_sound = files::get_sounds_folder_path()
+        .expect("Failed to get sounds folder path")
+        .join(filename)
+        .as_path()
+        .to_str()
+        .unwrap()
+        .to_string();
 
     // Callable via Tauri command from React on 'preview' button, vs direct invocation via keybind listener
     make_some_noise(

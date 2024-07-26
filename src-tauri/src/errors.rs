@@ -29,9 +29,17 @@ impl From<cpal::DeviceNameError> for SerializableDeviceNamesError {
 }
 
 #[derive(Debug, Error, Serialize)]
+pub enum AppError {
+    #[error("File error: {0}")]
+    Files(#[from] FilesError),
+    #[error("Settings error: {0}")]
+    Settings(#[from] SettingsError),
+    #[error("Sounds error: {0}")]
+    Sounds(#[from] SoundsError),
+}
+
+#[derive(Debug, Error, Serialize)]
 pub enum SettingsError {
-    #[error("Failed to lock settings state mutex")]
-    LockSettingsState,
     #[error("Failed to find sounds folder")]
     LoadSoundsFolder,
     #[error("Failed to serialize settings state")]
@@ -44,14 +52,10 @@ pub enum SettingsError {
     LoadAudioDevices(#[from] SerializableDevicesError),
     #[error("Failed to get audio device names")]
     GetDeviceNames(#[from] SerializableDeviceNamesError),
-    #[error("Failed to read settings from settings.json file")]
-    ReadSettings,
 }
 
 #[derive(Debug, Error, Serialize)]
 pub enum SoundsError {
-    #[error("Failed to get sounds folder path")]
-    GetSoundsFolder,
     #[error("Failed to load sound file")]
     LoadSoundFile,
     #[error("Failed to open sound file path")]

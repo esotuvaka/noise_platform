@@ -34,13 +34,13 @@ impl Default for SettingsState {
         let input_device = settings_file.input_device;
         let output_device = settings_file.output_device;
         // TODO: Convert to HashMap for faster lookups
-        let audio_settings = settings_file.audio_settings;
+        let noise_settings = settings_file.noise_settings;
 
         Self {
             settings_state: Mutex::new(settings::SettingsFile {
                 input_device,
                 output_device,
-                audio_settings,
+                noise_settings,
             }),
         }
     }
@@ -63,7 +63,7 @@ fn main() {
             sounds::get_sound_duration,
             sounds::play_sound,
             settings::save_setting,
-            settings::load_settings,
+            settings::get_settings_file,
             settings::load_audio_devices,
             settings::save_audio_devices,
         ])
