@@ -69,7 +69,7 @@ const NoiseTable = ({ noiseSettings }: NoiseTable) => {
 	}, [settings]);
 
 	return (
-		<div className="p-4 border border-neutral-800 bg-neutral-900">
+		<div className="p-4 border border-neutral-700 bg-neutral-900">
 			<table className="table-auto">
 				<thead>
 					<tr>

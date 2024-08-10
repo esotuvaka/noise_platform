@@ -31,7 +31,7 @@ function App() {
 	}, []);
 
 	return (
-		<div className="m-0 flex h-lvh w-lvw flex-col justify-center text-center bg-gradient-to-b from-neutral-900 to-black text-white">
+		<div className="m-0 flex h-lvh w-lvw flex-col justify-center text-center bg-gradient-to-b from-neutral-800 to-black text-white">
 			<Navbar
 				audioDevices={allAudioDevices}
 				handleRefresh={() => getSettingsFile()}
