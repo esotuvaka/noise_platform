@@ -28,8 +28,6 @@ pub struct SettingsFile {
 pub async fn get_settings_file() -> Result<SettingsFile, AppError> {
     println!("Loading settings");
 
-    // TODO: Consolidate keybinds and audio devices load + save functions
-
     let sound_folder = files::get_sounds_folder_path()?;
     let settings_json_file = sound_folder.join("settings.json");
     let settings_string = fs::read_to_string(&settings_json_file).unwrap();
@@ -39,25 +37,25 @@ pub async fn get_settings_file() -> Result<SettingsFile, AppError> {
     let sound_files = files::get_sound_files(sound_folder);
     let new_settings: Vec<KeybindSetting> = sound_files
         .iter()
-        .filter_map(|sound_file| {
-            if !settings_file
+        .map(|file_name| {
+            if let Some(existing_setting) = settings_file
                 .noise_settings
-                .iter()
-                .any(|setting| &setting.filename == sound_file)
+                .iter_mut()
+                .find(|setting: &&mut KeybindSetting| setting.filename == *file_name)
             {
-                Some(KeybindSetting {
-                    filename: sound_file.clone(),
+                existing_setting.clone()
+            } else {
+                KeybindSetting {
+                    filename: file_name.to_owned(),
                     keybind: "?".to_owned(),
                     user_volume: 1.0,
                     listener_volume: 1.0,
-                })
-            } else {
-                None
+                }
             }
         })
         .collect();
 
-    settings_file.noise_settings.extend(new_settings);
+    settings_file.noise_settings = new_settings;
 
     let settings_string = serde_json::to_string_pretty(&settings_file)
         .map_err(|_| SettingsError::SerializeSettings)?;
