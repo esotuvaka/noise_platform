@@ -34,8 +34,6 @@ pub fn make_some_noise(
     out_device: String,
 ) -> Result<(), SoundsError> {
     std::thread::spawn(move || {
-        dbg!(path_to_sound.clone());
-
         // Open the audio file
         let file = File::open(&path_to_sound).map_err(|_| SoundsError::LoadSoundFile)?;
         let host = cpal::default_host();

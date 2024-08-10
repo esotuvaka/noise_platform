@@ -70,6 +70,7 @@ pub async fn save_setting(
     keybind: String,
     user_volume: f32,
     listener_volume: f32,
+    app_state: State<'_, SettingsState>,
 ) -> Result<(), SettingsError> {
     println!("Saving setting for {}", file_name.clone());
 
@@ -101,6 +102,11 @@ pub async fn save_setting(
         });
     }
 
+    // Save the settings to the app state
+    let mut mutex_settings = app_state.settings_state.lock().unwrap();
+    mutex_settings.noise_settings = noise_settings.to_vec();
+
+    // Save the settings to the settings.json file
     let settings_string = serde_json::to_string_pretty(&settings_file)
         .map_err(|_| SettingsError::SerializeSettings)?;
     fs::write(settings_json_file, settings_string).map_err(|_| SettingsError::WriteSettings)?;
