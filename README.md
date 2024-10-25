@@ -1,4 +1,4 @@
-# Project Name
+# Noise Platform
 
 Welcome to Noise Platform. This project aims to provide a seamless soundboard experience with various features and integrations.
 
@@ -37,7 +37,7 @@ In theory, just about any audio device management software like Virtual Audio Ca
 
 ## Contributing
 
-Contributions are welcome. Please feel free to submit issues, fork the repository, and create pull requests.
+Contributions are welcome. Please feel free to submit issues and create pull requests.
 
 ## License
 
